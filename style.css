@@ -1,64 +1,153 @@
 :root {
     --bg: #ffffff;
     --text: #262626;
-    --secondary: #8e8e8e;
-    --accent: #0095f6;
     --border: #dbdbdb;
+    --accent: #000000;
+    --secondary-text: #8e8e8e;
+    --modal-bg: rgba(0, 0, 0, 0.85);
 }
 
+/* Поддержка темной темы устройства */
 @media (prefers-color-scheme: dark) {
-    :root { --bg: #000000; --text: #f5f5f5; --secondary: #a8a8a8; --border: #262626; }
+    :root {
+        --bg: #000000;
+        --text: #f5f5f5;
+        --border: #262626;
+        --accent: #ffffff;
+        --secondary-text: #a8a8a8;
+    }
 }
 
-body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+}
 
 header {
-    height: 60px; display: flex; justify-content: space-between; align-items: center;
-    padding: 0 20px; border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; background: var(--bg); z-index: 100;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background-color: var(--bg);
+    z-index: 100;
 }
 
 .logo { font-size: 22px; font-weight: 700; }
-.logo span { font-weight: 400; color: var(--secondary); }
-.nav-icons { display: flex; gap: 15px; align-items: center; }
+.logo span { font-weight: 400; color: var(--secondary-text); }
 
-.icon-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
-.user-avatar { width: 30px; height: 30px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
-
-.gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px 0; }
-.photo-card { aspect-ratio: 1/1; position: relative; background: #1a1a1a; }
-.photo-card img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
-
-.delete-btn {
-    position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6);
-    border: none; color: white; border-radius: 50%; width: 25px; height: 25px; cursor: pointer;
+.btn-auth {
+    background-color: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 7px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
-.modal-auth {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center;
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text);
 }
-.auth-content { background: var(--bg); padding: 30px; border-radius: 15px; width: 300px; text-align: center; }
-.auth-content input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 5px; background: none; color: var(--text); box-sizing: border-box; }
-.primary-btn { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 5px; font-weight: 600; cursor: pointer; margin-top: 10px; }
-.auth-switch { color: var(--accent); font-size: 14px; cursor: pointer; margin-top: 20px; }
 
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; }
-.modal-header { height: 50px; display: flex; align-items: center; padding: 0 15px; border-bottom: 1px solid var(--border); }
-.modal-content-wrapper { flex: 1; overflow-y: auto; }
-.image-container { position: relative; background: #000; display: flex; align-items: center; justify-content: center; min-height: 300px; }
-#fullScreenImg { width: 100%; height: auto; max-height: 75vh; object-fit: contain; }
-.nav-btn { position: absolute; background: rgba(0,0,0,0.3); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; }
-.left { left: 10px; } .right { right: 10px; }
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    background-color: var(--secondary-text);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+}
 
-.interaction-area { padding: 15px; }
-.actions { font-size: 24px; margin-bottom: 10px; }
-.like-btn { background: none; border: none; cursor: pointer; font-size: 24px; padding: 0; }
-.comment-input-area { display: flex; border-top: 1px solid var(--border); padding-top: 10px; }
-.comment-input-area input { flex: 1; border: none; background: none; color: var(--text); outline: none; }
-.comment-input-area button { background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; }
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    max-width: 935px;
+    margin: 0 auto;
+    padding: 3px 0;
+}
 
-.close-icon { background: none; border: none; color: var(--text); font-size: 28px; cursor: pointer; }
-.modal-title { flex: 1; text-align: center; font-weight: 600; }
+.photo-card {
+    aspect-ratio: 1/1;
+    background-color: var(--border);
+    overflow: hidden;
+}
 
-.hidden { display: none !important; }
+.photo-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Стили модального окна */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--modal-bg);
+    z-index: 1000;
+    display: none; /* Скрыто по умолчанию */
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-card {
+    background-color: var(--bg);
+    padding: 30px;
+    border-radius: 12px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.auth-card input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background-color: var(--bg);
+    color: var(--text);
+    box-sizing: border-box;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.auth-switch {
+    display: block;
+    margin-top: 15px;
+    font-size: 14px;
+    color: var(--secondary-text);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    color: var(--secondary-text);
+    margin-top: 20px;
+    cursor: pointer;
+}

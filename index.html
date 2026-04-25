@@ -9,58 +9,33 @@
 </head>
 <body>
 
-    <div id="authModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center; flex-direction:column;">
-        <div style="background:#fff; padding:30px; border-radius:15px; width:280px; text-align:center; color:#000;">
-            <h2 id="authTitle" style="margin-top:0;">Вход</h2>
-            <input type="email" id="authEmail" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
-            <input type="password" id="authPass" placeholder="Пароль" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
-            <button onclick="window.handleAuth()" style="width:100%; padding:12px; background:#0095f6; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Продолжить</button>
-            <p id="authSwitch" onclick="window.switchAuthMode()" style="color:#0095f6; font-size:14px; cursor:pointer; margin-top:15px;">Нет аккаунта? Регистрация</p>
-            <button onclick="window.toggleAuthModal()" style="margin-top:10px; background:none; border:none; color:gray; cursor:pointer;">Закрыть</button>
+    <div id="authModal" class="modal-overlay">
+        <div class="auth-card">
+            <h2 id="authTitle">Вход</h2>
+            <input type="email" id="authEmail" placeholder="Email">
+            <input type="password" id="authPass" placeholder="Пароль">
+            <button class="btn-submit" onclick="window.handleAuth()">Продолжить</button>
+            <span class="auth-switch" onclick="window.switchMode()" id="switchBtn">Нет аккаунта? Регистрация</span>
+            <button class="btn-close" onclick="window.toggleAuth()">Отмена</button>
         </div>
     </div>
 
-    <header style="height:60px; display:flex; justify-content:space-between; align-items:center; padding:0 20px; border-bottom:1px solid #dbdbdb; background:#fff; position:sticky; top:0; z-index:100;">
-        <div class="logo" style="font-size:22px; font-weight:700; color:#262626;">Alex<span style="font-weight:400; color:#8e8e8e;">stagram</span></div>
-        <div class="nav-icons" style="display:flex; gap:15px; align-items:center;">
-            <button class="icon-btn" id="addBtn" onclick="window.triggerUpload()" style="display:none; background:none; border:none; font-size:24px; cursor:pointer;">➕</button>
-            <button class="icon-btn" id="authBtn" onclick="window.toggleAuthModal()" style="background:#0095f6; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">Войти</button>
-            <div id="userProfile" style="display:none; width:30px; height:30px; background:#0095f6; border-radius:50%; align-items:center; justify-content:center; color:white; cursor:pointer;" onclick="window.handleLogout()">👤</div>
+    <header>
+        <div class="logo">Alex<span>stagram</span></div>
+        <div class="nav-icons">
+            <button class="btn-icon" id="addBtn" onclick="window.triggerUpload()" style="display:none;">➕</button>
+            <button class="btn-auth" id="authBtn" onclick="window.toggleAuth()">Войти</button>
+            <div id="userProfile" class="user-avatar" style="display:none;" onclick="window.handleLogout()">👤</div>
         </div>
     </header>
 
     <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="window.uploadPhoto()">
 
-    <main style="max-width:935px; margin:0 auto;">
-        <div class="gallery" id="gallery" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:3px; padding:3px 0;">
+    <main>
+        <div class="gallery" id="gallery">
             </div>
     </main>
 
-    <div id="fullScreenModal" class="hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:1001; flex-direction:column;">
-        <div style="height:50px; display:flex; align-items:center; padding:0 15px; border-bottom:1px solid #dbdbdb;">
-            <button onclick="window.closeFullScreen()" style="background:none; border:none; font-size:28px; cursor:pointer;">✕</button>
-            <span style="flex:1; text-align:center; font-weight:600;">Публикация</span>
-        </div>
-        <div style="flex:1; overflow-y:auto; text-align:center; background:#000; display:flex; align-items:center; justify-content:center;">
-            <img id="fullScreenImg" src="" style="max-width:100%; max-height:80vh;">
-        </div>
-        <div style="padding:15px; background:#fff; color:#000;">
-            <button class="like-btn" onclick="window.likeCurrentPhoto()" style="background:none; border:none; font-size:24px; cursor:pointer;">❤️ <span id="likeCount" style="font-size:18px;">0</span></button>
-            <div id="commentsList" style="margin-top:10px; font-size:14px; text-align:left;"></div>
-        </div>
-    </div>
-
     <script src="script.js"></script>
-
-    <script>
-        window.toggleAuthModal = function() {
-            const modal = document.getElementById('authModal');
-            if (modal.style.display === 'none' || modal.style.display === '') {
-                modal.style.display = 'flex';
-            } else {
-                modal.style.display = 'none';
-            }
-        };
-    </script>
 </body>
 </html>
