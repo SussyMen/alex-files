@@ -4,44 +4,189 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alexstagram</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* БЕЛО-ТЕМНЫЙ ДИЗАЙН */
+        :root {
+            --bg: #ffffff;
+            --text: #000000;
+            --border: #dbdbdb;
+            --secondary: #8e8e8e;
+            --btn-bg: #000000;
+            --btn-text: #ffffff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000;
+                --text: #ffffff;
+                --border: #262626;
+                --btn-bg: #ffffff;
+                --btn-text: #000000;
+            }
+        }
+
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        header { 
+            height: 60px; display: flex; justify-content: space-between; align-items: center; 
+            padding: 0 20px; border-bottom: 1px solid var(--border); 
+            position: sticky; top: 0; background: var(--bg); z-index: 1000;
+        }
+        .logo { font-size: 22px; font-weight: bold; }
+        .logo span { color: var(--secondary); font-weight: normal; }
+        
+        .btn-auth { 
+            background: var(--btn-bg); color: var(--btn-text); border: none; 
+            padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; 
+        }
+        .btn-icon { background: none; border: none; font-size: 24px; color: var(--text); cursor: pointer; }
+
+        .gallery { 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; 
+            max-width: 935px; margin: 0 auto; padding: 2px 0;
+        }
+        .photo-card { aspect-ratio: 1/1; background: var(--border); overflow: hidden; }
+        .photo-card img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ОКНО АВТОРИЗАЦИИ */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); z-index: 9999; 
+            display: none; align-items: center; justify-content: center; 
+        }
+        .auth-card { 
+            background: var(--bg); padding: 30px; border-radius: 15px; 
+            width: 280px; text-align: center; color: var(--text);
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+        .auth-card h2 { margin-top: 0; }
+        .auth-card input { 
+            width: 100%; padding: 12px; margin: 8px 0; 
+            border: 1px solid var(--border); border-radius: 8px; 
+            background: var(--bg); color: var(--text); box-sizing: border-box;
+        }
+        .btn-submit { 
+            width: 100%; padding: 12px; background: var(--btn-bg); 
+            color: var(--btn-text); border: none; border-radius: 8px; 
+            font-weight: bold; margin-top: 10px; cursor: pointer; 
+        }
+        .auth-switch { display: block; margin-top: 15px; font-size: 14px; color: var(--secondary); cursor: pointer; }
+    </style>
 </head>
 <body>
+
+    <header>
+        <div class="logo">Alex<span>stagram</span></div>
+        <div class="nav-icons">
+            <button class="btn-icon" id="addBtn" onclick="triggerUpload()" style="display:none;">➕</button>
+            <button class="btn-auth" id="authBtn" onclick="toggleAuth()">Войти</button>
+            <div id="userProfile" style="display:none; font-size:24px; cursor:pointer;" onclick="handleLogout()">👤</div>
+        </div>
+    </header>
 
     <div id="authModal" class="modal-overlay">
         <div class="auth-card">
             <h2 id="authTitle">Вход</h2>
             <input type="email" id="authEmail" placeholder="Email">
             <input type="password" id="authPass" placeholder="Пароль">
-            <button class="btn-submit" onclick="window.handleAuth()">Продолжить</button>
-            <span class="auth-switch" onclick="window.switchMode()" id="switchBtn">Нет аккаунта? Регистрация</span>
-            <button class="btn-close" onclick="window.toggleAuth()">Отмена</button>
+            <button class="btn-submit" onclick="handleAuth()">Продолжить</button>
+            <span class="auth-switch" id="switchBtn" onclick="switchMode()">Нет аккаунта? Регистрация</span>
+            <button onclick="toggleAuth()" style="background:none; border:none; color:var(--secondary); margin-top:15px; cursor:pointer;">Отмена</button>
         </div>
     </div>
 
-    <header>
-        <div class="logo">Alex<span>stagram</span></div>
-        <div class="nav-icons">
-            <button class="btn-icon" id="addBtn" onclick="window.triggerUpload()" style="display:none;">➕</button>
-            <button class="btn-auth" id="authBtn" onclick="window.toggleAuth()">Войти</button>
-            <div id="userProfile" class="user-avatar" style="display:none;" onclick="window.handleLogout()">👤</div>
-        </div>
-    </header>
+    <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="uploadPhoto()">
 
-    <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="window.uploadPhoto()">
-
-    <main><div class="gallery" id="gallery"></div></main>
+    <main>
+        <div class="gallery" id="gallery"></div>
+    </main>
 
     <script>
-        window.toggleAuth = function() {
+        // Проверка загрузки скрипта
+        console.log("Скрипт начал работу");
+
+        const SUPABASE_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let isSignUp = false;
+
+        // Открытие/закрытие окна
+        function toggleAuth() {
+            console.log("Нажата кнопка Войти");
             const modal = document.getElementById('authModal');
-            if (modal) {
-                const isHidden = window.getComputedStyle(modal).display === 'none';
-                modal.style.display = isHidden ? 'flex' : 'none';
+            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        // Смена режима Вход/Регистрация
+        function switchMode() {
+            isSignUp = !isSignUp;
+            document.getElementById('authTitle').innerText = isSignUp ? "Регистрация" : "Вход";
+            document.getElementById('switchBtn').innerText = isSignUp ? "Есть аккаунт? Войти" : "Нет аккаунта? Регистрация";
+        }
+
+        // Авторизация
+        async function handleAuth() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPass').value;
+            if(!email || !password) return alert("Заполни поля!");
+
+            let result;
+            if (isSignUp) {
+                result = await supabase.auth.signUp({ email, password });
+                if(!result.error) alert("Регистрация успешна! Теперь войдите.");
+            } else {
+                result = await supabase.auth.signInWithPassword({ email, password });
             }
-        };
+
+            if (result.error) alert("Ошибка: " + result.error.message);
+            else if (!isSignUp) location.reload();
+        }
+
+        // Выход
+        async function handleLogout() {
+            if(confirm("Выйти?")) {
+                await supabase.auth.signOut();
+                location.reload();
+            }
+        }
+
+        // Загрузка галереи
+        async function loadGallery() {
+            const { data, error } = await supabase.storage.from('photos').list();
+            if (error) return;
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = "";
+            data.forEach(file => {
+                const { data: urlData } = supabase.storage.from('photos').getPublicUrl(file.name);
+                const div = document.createElement('div');
+                div.className = 'photo-card';
+                div.innerHTML = `<img src="${urlData.publicUrl}">`;
+                gallery.appendChild(div);
+            });
+        }
+
+        // Загрузка фото
+        function triggerUpload() { document.getElementById('imageInput').click(); }
+        async function uploadPhoto() {
+            const file = document.getElementById('imageInput').files[0];
+            if(!file) return;
+            const name = Date.now() + "_" + file.name;
+            const { error } = await supabase.storage.from('photos').upload(name, file);
+            if(error) alert(error.message); else loadGallery();
+        }
+
+        // Старт
+        async function init() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                document.getElementById('authBtn').style.display = 'none';
+                document.getElementById('addBtn').style.display = 'block';
+                document.getElementById('userProfile').style.display = 'flex';
+            }
+            loadGallery();
+        }
+        init();
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
