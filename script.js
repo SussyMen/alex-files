@@ -1,93 +1,128 @@
-// Тест загрузки - удали, когда увидишь окно
-alert("Проверка: Скрипт запустился!");
-
-const SUPABASE_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
+// --- НАСТРОЙКИ ---
+const SUPABASE_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co'; 
 const SUPABASE_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
 
-// Инициализация
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Проверка загрузки библиотеки
+let supabaseClient;
+try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log("Supabase готов!");
+} catch (e) {
+    alert("Ошибка: библиотека Supabase не загружена. Проверь интернет.");
+}
 
-// Глобальные функции (чтобы HTML их точно видел)
+window.isAdmin = false;
+const ADMIN_PASSWORD = "1234";
+
+// --- ФУНКЦИИ ИНТЕРФЕЙСА ---
+
 window.toggleAdminPanel = function() {
-    console.log("Нажата кнопка админки");
     const panel = document.getElementById('passwordPanel');
     panel.classList.toggle('hidden');
 };
 
 window.checkPassword = function() {
     const pass = document.getElementById('adminPass').value;
-    if (pass === "1234") {
+    if (pass === ADMIN_PASSWORD) {
         window.isAdmin = true;
         document.getElementById('adminStatus').style.display = 'inline';
         document.getElementById('passwordPanel').classList.add('hidden');
-        alert("Доступ разрешен!");
+        alert("Режим админа включен!");
         loadGallery();
     } else {
-        alert("Неверный пароль");
+        alert("Неверный пароль!");
     }
 };
+
+// --- РАБОТА С ФАЙЛАМИ ---
 
 window.uploadPhoto = async function() {
     const fileInput = document.getElementById('imageInput');
     const file = fileInput.files[0];
-    if (!file) return alert("Файл не выбран!");
-
     const btn = document.getElementById('uploadBtn');
-    btn.innerText = "Загружаем...";
+
+    if (!file) return alert("Сначала выбери файл!");
+
+    btn.disabled = true;
+    btn.innerText = "Загрузка...";
 
     const fileName = Date.now() + "_" + file.name;
 
-    const { data, error } = await supabaseClient.storage
-        .from('photos')
-        .upload(fileName, file);
+    try {
+        const { data, error } = await supabaseClient.storage
+            .from('photos')
+            .upload(fileName, file);
 
-    if (error) {
-        alert("Ошибка Supabase: " + error.message);
-    } else {
-        alert("Фото успешно улетело в облако!");
+        if (error) throw error;
+
+        alert("Готово! Фото в облаке.");
+        fileInput.value = ""; // Очистить поле выбора
         loadGallery();
+    } catch (err) {
+        alert("Ошибка загрузки: " + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Загрузить фото";
     }
-    btn.innerText = "Загрузить в облако";
 };
 
 async function loadGallery() {
     const gallery = document.getElementById('gallery');
-    gallery.innerHTML = "Загрузка фото из базы...";
+    const status = document.getElementById('status');
+    
+    status.innerText = "Синхронизация с облаком...";
 
-    const { data, error } = await supabaseClient.storage.from('photos').list();
+    try {
+        const { data, error } = await supabaseClient.storage.from('photos').list();
 
-    if (error) {
-        alert("Ошибка списка: " + error.message);
-        return;
+        if (error) throw error;
+
+        gallery.innerHTML = "";
+        
+        if (data.length === 0) {
+            status.innerText = "Галерея пуста";
+            return;
+        }
+
+        data.forEach(file => {
+            const { data: urlData } = supabaseClient.storage.from('photos').getPublicUrl(file.name);
+            
+            const card = document.createElement('div');
+            card.className = 'photo-card';
+            card.innerHTML = `
+                <img src="${urlData.publicUrl}" onclick="window.openFullScreen('${urlData.publicUrl}')">
+                ${window.isAdmin ? `<button class="delete-btn" style="display:block;" onclick="window.deletePhoto('${file.name}')">❌</button>` : ''}
+            `;
+            gallery.appendChild(card);
+        });
+        status.innerText = "";
+    } catch (err) {
+        status.innerText = "Ошибка галереи: " + err.message;
     }
-
-    gallery.innerHTML = "";
-    data.forEach(file => {
-        const { data: urlData } = supabaseClient.storage.from('photos').getPublicUrl(file.name);
-        const imgCard = document.createElement('div');
-        imgCard.className = 'photo-card';
-        imgCard.innerHTML = `
-            <img src="${urlData.publicUrl}" onclick="window.openFullScreen('${urlData.publicUrl}')">
-            ${window.isAdmin ? `<button onclick="deletePhoto('${file.name}')" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:5px; cursor:pointer;">❌</button>` : ''}
-        `;
-        gallery.appendChild(imgCard);
-    });
 }
 
 window.deletePhoto = async function(name) {
-    if(!confirm("Удалить?")) return;
-    await supabaseClient.storage.from('photos').remove([name]);
-    loadGallery();
+    if (!confirm("Удалить этот файл навсегда?")) return;
+
+    try {
+        const { error } = await supabaseClient.storage.from('photos').remove([name]);
+        if (error) throw error;
+        loadGallery();
+    } catch (err) {
+        alert("Не удалось удалить: " + err.message);
+    }
 };
 
-window.openFullScreen = (src) => {
+// --- МОДАЛЬНОЕ ОКНО ---
+
+window.openFullScreen = function(src) {
     document.getElementById('fullScreenImg').src = src;
     document.getElementById('fullScreenModal').style.display = 'flex';
 };
 
-window.closeFullScreen = () => {
+window.closeFullScreen = function() {
     document.getElementById('fullScreenModal').style.display = 'none';
 };
 
-// Запуск при старте
+// Запуск при открытии сайта
 loadGallery();

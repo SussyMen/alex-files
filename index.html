@@ -12,25 +12,27 @@
     <header>
         <h1>Файлы Алексея</h1>
         <div class="admin-controls">
-            <button id="adminBtn">Админ-панель</button>
+            <button onclick="window.toggleAdminPanel()">Админ-панель</button>
             <span id="adminStatus" style="display:none;">🔓 Админ</span>
         </div>
     </header>
 
     <div id="passwordPanel" class="hidden">
         <input type="password" id="adminPass" placeholder="Пароль">
-        <button id="loginBtn">Войти</button>
+        <button onclick="window.checkPassword()">Войти</button>
     </div>
 
     <main>
         <section class="upload-section">
             <input type="file" id="imageInput" accept="image/*">
-            <button id="uploadBtn">Загрузить в облако</button>
+            <button id="uploadBtn" onclick="window.uploadPhoto()">Загрузить фото</button>
         </section>
+        
+        <div id="status" style="text-align:center; color: #888;"></div>
         <div class="gallery" id="gallery"></div>
     </main>
 
-    <div id="fullScreenModal" class="modal" onclick="closeFullScreen()">
+    <div id="fullScreenModal" class="modal" onclick="window.closeFullScreen()">
         <img id="fullScreenImg" src="">
     </div>
 
