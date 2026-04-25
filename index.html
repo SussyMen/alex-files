@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <title>Файлы Алексея</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <header>
         <h1>Файлы Алексея</h1>
         <div class="admin-controls">
-            <button id="loginBtn" onclick="toggleAdminPanel()">Админ-панель</button>
+            <button onclick="toggleAdminPanel()">Админ-панель</button>
             <span id="adminStatus" style="display:none;">🔓 Админ</span>
         </div>
     </header>
@@ -23,9 +24,8 @@
     <main>
         <section class="upload-section">
             <input type="file" id="imageInput" accept="image/*">
-            <button onclick="uploadPhoto()">Загрузить фото</button>
+            <button onclick="uploadPhoto()">Загрузить в облако</button>
         </section>
-
         <div class="gallery" id="gallery"></div>
     </main>
 
@@ -33,27 +33,6 @@
         <img id="fullScreenImg" src="">
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // ВСТАВЬ СВОИ ДАННЫЕ ИЗ КОНСОЛИ FIREBASE СЮДА:
-        const firebaseConfig = {
-  apiKey: "AIzaSyC8YXNQu6dwhW8UnKEoVUnu8z_tl3W27pE",
-  authDomain: "alex-files-7bd61.firebaseapp.com",
-  projectId: "alex-files-7bd61",
-  storageBucket: "alex-files-7bd61.firebasestorage.app",
-  messagingSenderId: "248802587671",
-  appId: "1:248802587671:web:8d52b31b83a3770ab5d852"
-};
-
-
-        const app = initializeApp(firebaseConfig);
-        window.storage = getStorage(app);
-        window.db = getFirestore(app);
-    </script>
-
-    <script src="script.js" type="module"></script>
+    <script src="script.js"></script>
 </body>
 </html>
