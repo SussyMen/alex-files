@@ -31,10 +31,17 @@
 
     <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="window.uploadPhoto()">
 
-    <main>
-        <div class="gallery" id="gallery"></div>
-    </main>
+    <main><div class="gallery" id="gallery"></div></main>
 
+    <script>
+        window.toggleAuth = function() {
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                const isHidden = window.getComputedStyle(modal).display === 'none';
+                modal.style.display = isHidden ? 'flex' : 'none';
+            }
+        };
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
