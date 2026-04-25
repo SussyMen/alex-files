@@ -1,72 +1,77 @@
+import { collection, addDoc, query, onSnapshot, deleteDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 let isAdmin = false;
-const gallery = document.getElementById('gallery');
-const ADMIN_PASSWORD = "1234"; // Установите свой пароль здесь
+const ADMIN_PASSWORD = "1234"; // Твой пароль
 
-// Функция входа
-function checkPassword() {
+const gallery = document.getElementById('gallery');
+
+// 1. Отображение фото в реальном времени
+const q = query(collection(window.db, "photos"), orderBy("createdAt", "desc"));
+onSnapshot(q, (snapshot) => {
+    gallery.innerHTML = '';
+    snapshot.forEach((d) => {
+        const data = d.data();
+        renderPhoto(data.url, d.id, data.storagePath);
+    });
+});
+
+// 2. Функция загрузки
+window.uploadPhoto = async function() {
+    const file = document.getElementById('imageInput').files[0];
+    if (!file) return alert("Выбери файл!");
+
+    try {
+        const storagePath = `images/${Date.now()}_${file.name}`;
+        const storageRef = ref(window.storage, storagePath);
+
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+
+        await addDoc(collection(window.db, "photos"), {
+            url: url,
+            storagePath: storagePath,
+            createdAt: Date.now()
+        });
+        alert("Загружено!");
+    } catch (e) {
+        console.error(e);
+        alert("Ошибка! Проверь правила (Rules) в Firebase.");
+    }
+};
+
+function renderPhoto(url, id, storagePath) {
+    const card = document.createElement('div');
+    card.className = 'photo-card';
+    card.innerHTML = `
+        <img src="${url}" onclick="openFullScreen('${url}')">
+        ${isAdmin ? `<button class="delete-btn" style="display:block;" onclick="deletePhoto('${id}', '${storagePath}')">❌</button>` : ''}
+    `;
+    gallery.appendChild(card);
+}
+
+// 3. Админка и удаление
+window.checkPassword = function() {
     const pass = document.getElementById('adminPass').value;
     if (pass === ADMIN_PASSWORD) {
         isAdmin = true;
         document.getElementById('adminStatus').style.display = 'inline';
         document.getElementById('passwordPanel').classList.add('hidden');
-        renderGallery(); // Перерисовываем, чтобы появились кнопки удаления
+        alert("Режим админа включен");
     } else {
-        alert("Неверный пароль!");
+        alert("Неверно!");
     }
-}
+};
 
-function toggleAdminPanel() {
-    document.getElementById('passwordPanel').classList.toggle('hidden');
-}
+window.deletePhoto = async function(id, storagePath) {
+    if (!confirm("Удалить фото?")) return;
+    await deleteDoc(doc(window.db, "photos", id));
+    await deleteObject(ref(window.storage, storagePath));
+};
 
-// Загрузка фото (Base64 для хранения в localStorage)
-function uploadPhoto() {
-    const file = document.getElementById('imageInput').files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const photos = JSON.parse(localStorage.getItem('alexFiles') || '[]');
-        photos.push(e.target.result);
-        localStorage.setItem('alexFiles', JSON.stringify(photos));
-        renderGallery();
-    };
-    reader.readAsDataURL(file);
-}
-
-function renderGallery() {
-    gallery.innerHTML = '';
-    const photos = JSON.parse(localStorage.getItem('alexFiles') || '[]');
-
-    photos.forEach((src, index) => {
-        const card = document.createElement('div');
-        card.className = 'photo-card';
-        
-        card.innerHTML = `
-            <img src="${src}" onclick="openFullScreen('${src}')">
-            ${isAdmin ? `<button class="delete-btn" style="display:block;" onclick="deletePhoto(${index})">Удалить</button>` : ''}
-        `;
-        gallery.appendChild(card);
-    });
-}
-
-function deletePhoto(index) {
-    let photos = JSON.parse(localStorage.getItem('alexFiles'));
-    photos.splice(index, 1);
-    localStorage.setItem('alexFiles', JSON.stringify(photos));
-    renderGallery();
-}
-
-function openFullScreen(src) {
+window.toggleAdminPanel = () => document.getElementById('passwordPanel').classList.toggle('hidden');
+window.openFullScreen = (src) => {
     document.getElementById('fullScreenImg').src = src;
     document.getElementById('fullScreenModal').style.display = 'flex';
-}
-
-function closeFullScreen() {
-    document.getElementById('fullScreenModal').style.display = 'none';
-}
-
-// Инициализация при загрузке
-renderGallery();
-
+};
+window.closeFullScreen = () => document.getElementById('fullScreenModal').style.display = 'none';
