@@ -3,32 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Файлы Алексея</title>
+    <title>Архив | Alex Files</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
+    <div class="background-blobs"></div>
+
     <header>
-        <h1>Файлы Алексея</h1>
+        <div class="logo">Alex<span>Files</span></div>
         <div class="admin-controls">
-            <button onclick="window.toggleAdminPanel()">Админ-панель</button>
-            <span id="adminStatus" style="display:none;">🔓 Админ</span>
+            <button class="icon-btn" onclick="window.toggleAdminPanel()">⚙️</button>
+            <span id="adminStatus" class="status-badge" style="display:none;">Admin Mode</span>
         </div>
     </header>
 
-    <div id="passwordPanel" class="hidden">
-        <input type="password" id="adminPass" placeholder="Пароль">
-        <button onclick="window.checkPassword()">Войти</button>
+    <div id="passwordPanel" class="modal-mini hidden">
+        <div class="modal-content">
+            <input type="password" id="adminPass" placeholder="Пароль администратора">
+            <button onclick="window.checkPassword()">Войти</button>
+        </div>
     </div>
 
     <main>
-        <section class="upload-section">
-            <input type="file" id="imageInput" accept="image/*">
-            <button id="uploadBtn" onclick="window.uploadPhoto()">Загрузить фото</button>
-        </section>
+        <div class="upload-card">
+            <label for="imageInput" class="custom-file-upload">
+                Выберите изображение
+            </label>
+            <input type="file" id="imageInput" accept="image/*" onchange="updateFileName()">
+            <span id="fileNameDisplay">Файл не выбран</span>
+            <button id="uploadBtn" onclick="window.uploadPhoto()">Загрузить</button>
+        </div>
         
-        <div id="status" style="text-align:center; color: #888;"></div>
         <div class="gallery" id="gallery"></div>
     </main>
 
