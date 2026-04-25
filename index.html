@@ -28,10 +28,8 @@
 
     <main>
         <div class="upload-card">
-            <label for="imageInput" class="custom-file-upload">
-                Выберите изображение
-            </label>
-            <input type="file" id="imageInput" accept="image/*" onchange="updateFileName()">
+            <label for="imageInput" class="custom-file-upload">Выберите изображение</label>
+            <input type="file" id="imageInput" accept="image/*" onchange="window.updateFileName()">
             <span id="fileNameDisplay">Файл не выбран</span>
             <button id="uploadBtn" onclick="window.uploadPhoto()">Загрузить</button>
         </div>
@@ -39,8 +37,30 @@
         <div class="gallery" id="gallery"></div>
     </main>
 
-    <div id="fullScreenModal" class="modal" onclick="window.closeFullScreen()">
-        <img id="fullScreenImg" src="">
+    <div id="fullScreenModal" class="modal hidden">
+        <button class="close-btn" onclick="window.closeFullScreen()">✖</button>
+        
+        <button class="nav-btn left" onclick="window.prevPhoto()">&#10094;</button>
+        
+        <div class="modal-content-wrapper">
+            <img id="fullScreenImg" src="">
+            
+            <div class="interaction-bar">
+                <button class="like-btn" onclick="window.likeCurrentPhoto()">
+                    ❤️ <span id="likeCount">0</span>
+                </button>
+            </div>
+            
+            <div class="comments-section">
+                <div id="commentsList"></div>
+                <div class="comment-input-area">
+                    <input type="text" id="commentInput" placeholder="Написать комментарий...">
+                    <button onclick="window.addComment()">Отправить</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="nav-btn right" onclick="window.nextPhoto()">&#10095;</button>
     </div>
 
     <script src="script.js"></script>
