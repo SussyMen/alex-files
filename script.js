@@ -8,8 +8,8 @@ let currentIndex = 0;
 let isSignUp = false;
 let currentUser = null;
 
-// Инициализация
 async function init() {
+    console.log("Приложение запускается...");
     const { data: { session } } = await supabase.auth.getSession();
     updateUserUI(session?.user || null);
     loadGallery();
@@ -36,7 +36,16 @@ function updateUserUI(user) {
     }
 }
 
-window.toggleAuthModal = () => document.getElementById('authModal').classList.toggle('hidden');
+// ЭТА ФУНКЦИЯ ОТКРЫВАЕТ ОКНО ВХОДА
+window.toggleAuthModal = () => {
+    console.log("Нажата кнопка Войти");
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.classList.toggle('hidden');
+    } else {
+        console.error("Элемент authModal не найден!");
+    }
+};
 
 window.switchAuthMode = () => {
     isSignUp = !isSignUp;
@@ -69,17 +78,25 @@ window.uploadPhoto = async () => {
     const fileName = `${Date.now()}_${file.name}`;
     const { error } = await supabase.storage.from('photos').upload(fileName, file);
     
-    if (error) alert("Ошибка загрузки. Проверь RLS в Storage!");
+    if (error) alert("Ошибка загрузки: " + error.message);
     else loadGallery();
 };
 
 async function loadGallery() {
+    console.log("Загрузка галереи...");
     const { data, error } = await supabase.storage.from('photos').list();
-    if (error) return;
+    if (error) {
+        console.error("Ошибка Storage:", error);
+        return;
+    }
 
     currentPhotos = [];
     const gallery = document.getElementById('gallery');
     gallery.innerHTML = "";
+
+    if (data.length === 0) {
+        gallery.innerHTML = "<p style='grid-column: 1/4; text-align:center; padding: 20px;'>Фотографий пока нет. Войдите и нажмите +, чтобы загрузить.</p>";
+    }
 
     data.forEach((file, index) => {
         const { data: urlData } = supabase.storage.from('photos').getPublicUrl(file.name);
