@@ -1,6 +1,6 @@
 // ВСТАВЬ СВОИ ДАННЫЕ СЮДА
-const SUPABASE_URL = 'ТВОЙ_PROJECT_URL';
-const SUPABASE_KEY = 'ТВОЙ_ANON_KEY';
+const SUPABASE_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
 
 const supabase = libSupabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
