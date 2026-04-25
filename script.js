@@ -1,27 +1,36 @@
 // ВСТАВЬ СВОИ ДАННЫЕ СЮДА
-const SUPABASE_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
+const SUPABASE_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co'; 
 const SUPABASE_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
 
-// Создаем клиент (библиотека Supabase экспортирует объект createClient)
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// 1. Проверка загрузки библиотеки
+let supabase;
+try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log("Supabase подключен");
+} catch (e) {
+    alert("Критическая ошибка: библиотека Supabase не загружена!");
+}
 
 let isAdmin = false;
 const ADMIN_PASSWORD = "1234";
 
+// Элементы
 const gallery = document.getElementById('gallery');
+const adminBtn = document.getElementById('adminBtn');
+const loginBtn = document.getElementById('loginBtn');
+const uploadBtn = document.getElementById('uploadBtn');
 
-// Привязываем кнопки к функциям через JS
-document.getElementById('adminBtn').onclick = toggleAdminPanel;
-document.getElementById('loginBtn').onclick = checkPassword;
-document.getElementById('uploadBtn').onclick = uploadPhoto;
+// Назначаем события
+if(adminBtn) adminBtn.onclick = toggleAdminPanel;
+if(loginBtn) loginBtn.onclick = checkPassword;
+if(uploadBtn) uploadBtn.onclick = uploadPhoto;
 
-// Загрузка фото
+// ФУНКЦИЯ ЗАГРУЗКИ
 async function uploadPhoto() {
     const fileInput = document.getElementById('imageInput');
     const file = fileInput.files[0];
     if (!file) return alert("Выбери файл!");
 
-    const uploadBtn = document.getElementById('uploadBtn');
     uploadBtn.innerText = "Загрузка...";
     uploadBtn.disabled = true;
 
@@ -38,24 +47,25 @@ async function uploadPhoto() {
         fileInput.value = "";
         loadGallery();
     } catch (error) {
-        alert("Ошибка: " + error.message);
+        alert("Ошибка Supabase: " + error.message);
+        console.error(error);
     } finally {
         uploadBtn.innerText = "Загрузить в облако";
         uploadBtn.disabled = false;
     }
 }
 
-// Отображение галереи
+// ФУНКЦИЯ ГАЛЕРЕИ
 async function loadGallery() {
-    gallery.innerHTML = '<p>Загрузка файлов...</p>';
-    
+    gallery.innerHTML = '<p>Загрузка...</p>';
     try {
         const { data, error } = await supabase.storage.from('photos').list();
         if (error) throw error;
 
         gallery.innerHTML = '';
-        if (data.length === 0) {
-            gallery.innerHTML = '<p>Тут пока пусто</p>';
+        if (!data || data.length === 0) {
+            gallery.innerHTML = '<p>Тут пока пусто. Загрузи первое фото!</p>';
+            return;
         }
 
         data.forEach(file => {
@@ -63,8 +73,7 @@ async function loadGallery() {
             renderPhoto(urlData.publicUrl, file.name);
         });
     } catch (error) {
-        gallery.innerHTML = "Ошибка связи с базой";
-        console.error(error);
+        alert("Ошибка галереи: " + error.message);
     }
 }
 
@@ -78,7 +87,7 @@ function renderPhoto(url, fileName) {
     gallery.appendChild(card);
 }
 
-// Удаление (сделаем глобальной для кнопок в карточках)
+// Удаление
 window.deletePhoto = async function(fileName) {
     if (!confirm("Удалить фото?")) return;
     const { error } = await supabase.storage.from('photos').remove([fileName]);
@@ -86,6 +95,7 @@ window.deletePhoto = async function(fileName) {
     else loadGallery();
 };
 
+// Админка
 function checkPassword() {
     const pass = document.getElementById('adminPass').value;
     if (pass === ADMIN_PASSWORD) {
@@ -94,23 +104,22 @@ function checkPassword() {
         document.getElementById('passwordPanel').classList.add('hidden');
         loadGallery();
     } else {
-        alert("Неверно!");
+        alert("Неверный пароль!");
     }
 }
 
 function toggleAdminPanel() {
-    const panel = document.getElementById('passwordPanel');
-    panel.classList.toggle('hidden');
+    document.getElementById('passwordPanel').classList.toggle('hidden');
 }
 
-window.openFullScreen = function(src) {
+window.openFullScreen = (src) => {
     document.getElementById('fullScreenImg').src = src;
     document.getElementById('fullScreenModal').style.display = 'flex';
 };
 
-window.closeFullScreen = function() {
+window.closeFullScreen = () => {
     document.getElementById('fullScreenModal').style.display = 'none';
 };
 
-// Загрузка при старте
+// Запуск
 loadGallery();
