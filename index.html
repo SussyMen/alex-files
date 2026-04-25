@@ -11,20 +11,20 @@
     <header>
         <h1>Файлы Алексея</h1>
         <div class="admin-controls">
-            <button onclick="toggleAdminPanel()">Админ-панель</button>
+            <button id="adminBtn">Админ-панель</button>
             <span id="adminStatus" style="display:none;">🔓 Админ</span>
         </div>
     </header>
 
     <div id="passwordPanel" class="hidden">
         <input type="password" id="adminPass" placeholder="Пароль">
-        <button onclick="checkPassword()">Войти</button>
+        <button id="loginBtn">Войти</button>
     </div>
 
     <main>
         <section class="upload-section">
             <input type="file" id="imageInput" accept="image/*">
-            <button onclick="uploadPhoto()">Загрузить в облако</button>
+            <button id="uploadBtn">Загрузить в облако</button>
         </section>
         <div class="gallery" id="gallery"></div>
     </main>
