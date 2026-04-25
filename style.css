@@ -1,107 +1,164 @@
-/* --- НОВЫЕ СТИЛИ ДЛЯ МОДАЛЬНОГО ОКНА И КОММЕНТАРИЕВ --- */
+:root {
+    --bg: #ffffff;
+    --text: #262626;
+    --secondary-text: #8e8e8e;
+    --accent: #0095f6; /* Инстаграмовский синий */
+    --border: #dbdbdb;
+    --card-bg: #ffffff;
+}
 
-.modal-content-wrapper {
+/* Темная тема (автоматически, если на телефоне включен ночной режим) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000000;
+        --text: #f5f5f5;
+        --secondary-text: #a8a8a8;
+        --border: #262626;
+        --card-bg: #000000;
+    }
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+}
+
+header {
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
     background: var(--bg);
-    border-radius: 15px;
-    padding: 20px;
-    max-width: 90%;
-    max-height: 90vh;
+    z-index: 100;
+}
+
+.logo { font-size: 22px; font-weight: 700; letter-spacing: -1px; }
+
+/* Сетка как в профиле Instagram */
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px; /* Тонкие разделители между фото */
+    padding: 3px 0;
+}
+
+.photo-card {
+    aspect-ratio: 1 / 1; /* Квадраты в общей сетке для аккуратности */
+    position: relative;
+    overflow: hidden;
+    background: #262626;
+}
+
+.photo-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* В сетке профиля — квадраты */
+    cursor: pointer;
+}
+
+/* Модальное окно (Просмотр поста) */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg);
+    z-index: 1000;
     display: flex;
     flex-direction: column;
+}
+
+.modal-header {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-content-wrapper {
+    flex: 1;
     overflow-y: auto;
-    position: relative;
-    z-index: 10;
+    display: flex;
+    flex-direction: column;
 }
 
 #fullScreenImg {
-    max-height: 50vh; /* Чтобы осталось место для комментов */
+    width: 100%;
+    height: auto; /* Внутри поста фото не обрезается! */
+    max-height: 80vh;
     object-fit: contain;
-    border-radius: 10px;
-    margin-bottom: 15px;
+    background: #000;
 }
 
+/* Кнопки навигации (прозрачные поверх фото) */
 .nav-btn {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0,0,0,0.5);
+    top: 40%;
+    background: rgba(0,0,0,0.3);
     color: white;
     border: none;
-    font-size: 30px;
-    padding: 15px;
-    cursor: pointer;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    z-index: 100;
-}
-.nav-btn.left { left: 5%; }
-.nav-btn.right { right: 5%; }
-.nav-btn:hover { background: var(--accent); color: var(--bg); }
-
-.close-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(0,0,0,0.5);
-    color: white;
-    border: none;
     font-size: 20px;
-    padding: 10px 15px;
-    cursor: pointer;
-    border-radius: 50%;
-    z-index: 100;
+    z-index: 10;
+}
+.left { left: 10px; }
+.right { right: 10px; }
+
+/* Лайки и комменты в стиле Instagram */
+.interaction-area {
+    padding: 12px;
 }
 
-.interaction-bar {
+.actions {
     display: flex;
-    justify-content: flex-start;
-    margin-bottom: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding-bottom: 10px;
+    gap: 15px;
+    font-size: 24px;
+    margin-bottom: 8px;
 }
 
-.like-btn {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: var(--text);
-    padding: 8px 15px;
-    font-size: 16px;
-}
-.like-btn:hover { background: rgba(255,255,255,0.1); }
-
-.comments-section {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+.like-btn { background: none; border: none; color: var(--text); padding: 0; cursor: pointer; }
+.likes-count { font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block; }
 
 #commentsList {
-    max-height: 150px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    text-align: left;
+    font-size: 14px;
+    margin-bottom: 10px;
 }
 
-.comment-item {
-    background: rgba(255,255,255,0.05);
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 14px;
-}
+.comment-item { margin-bottom: 5px; }
+.comment-item b { margin-right: 5px; }
 
 .comment-input-area {
+    border-top: 1px solid var(--border);
+    padding: 10px 0;
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
 }
 
 .comment-input-area input {
-    flex-grow: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: transparent;
-    color: white;
+    flex: 1;
+    border: none;
+    background: none;
+    color: var(--text);
+    outline: none;
 }
+
+.comment-input-area button {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.upload-card {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.hidden { display: none !important; }
