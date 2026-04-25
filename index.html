@@ -26,8 +26,8 @@
             <input type="email" id="authEmail" placeholder="Email">
             <input type="password" id="authPass" placeholder="Пароль">
             <button class="primary-btn" onclick="window.handleAuth()">Продолжить</button>
-            <p onclick="window.switchAuthMode()" id="authSwitch">Нет аккаунта? Регистрация</p>
-            <button class="close-txt" onclick="window.toggleAuthModal()">Отмена</button>
+            <p class="auth-switch" onclick="window.switchAuthMode()" id="authSwitch">Нет аккаунта? Регистрация</p>
+            <button onclick="window.toggleAuthModal()" style="background:none; border:none; margin-top:15px; color:gray; cursor:pointer;">Отмена</button>
         </div>
     </div>
 
@@ -48,8 +48,7 @@
             </div>
             <div class="interaction-area">
                 <div class="actions">
-                    <button class="like-btn" id="likeActionBtn" onclick="window.likeCurrentPhoto()">❤️</button>
-                    <span>💬</span>
+                    <button class="like-btn" onclick="window.likeCurrentPhoto()">❤️</button>
                 </div>
                 <span class="likes-count">Нравится: <span id="likeCount">0</span></span>
                 <div id="commentsList"></div>
@@ -57,7 +56,7 @@
                     <input type="text" id="commentInput" placeholder="Добавьте комментарий...">
                     <button onclick="window.addComment()">Опубликовать</button>
                 </div>
-                <p id="authNotice" class="hidden">Войдите, чтобы ставить лайки</p>
+                <p id="authNotice" class="hidden" style="color:gray; font-size:12px;">Войдите, чтобы ставить лайки</p>
             </div>
         </div>
     </div>

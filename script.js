@@ -1,5 +1,6 @@
 const SUPABASE_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
+
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentPhotos = [];
@@ -7,7 +8,7 @@ let currentIndex = 0;
 let isSignUp = false;
 let currentUser = null;
 
-// --- Инициализация ---
+// Инициализация
 async function init() {
     const { data: { session } } = await supabase.auth.getSession();
     updateUserUI(session?.user || null);
@@ -24,7 +25,6 @@ function updateUserUI(user) {
     document.getElementById('userProfile').style.display = user ? 'flex' : 'none';
     document.getElementById('authBtn').style.display = user ? 'none' : 'block';
     
-    // Прячем/показываем ввод комментов в зависимости от входа
     const area = document.getElementById('commentArea');
     const notice = document.getElementById('authNotice');
     if (user) {
@@ -36,7 +36,6 @@ function updateUserUI(user) {
     }
 }
 
-// --- Авторизация ---
 window.toggleAuthModal = () => document.getElementById('authModal').classList.toggle('hidden');
 
 window.switchAuthMode = () => {
@@ -49,7 +48,7 @@ window.handleAuth = async () => {
     const email = document.getElementById('authEmail').value;
     const password = document.getElementById('authPass').value;
     
-    const { data, error } = isSignUp 
+    const { error } = isSignUp 
         ? await supabase.auth.signUp({ email, password })
         : await supabase.auth.signInWithPassword({ email, password });
 
@@ -58,10 +57,9 @@ window.handleAuth = async () => {
 };
 
 window.handleLogout = async () => {
-    if (confirm("Выйти из аккаунта?")) await supabase.auth.signOut();
+    if (confirm("Выйти?")) await supabase.auth.signOut();
 };
 
-// --- Работа с фото ---
 window.triggerUpload = () => document.getElementById('imageInput').click();
 
 window.uploadPhoto = async () => {
@@ -71,7 +69,7 @@ window.uploadPhoto = async () => {
     const fileName = `${Date.now()}_${file.name}`;
     const { error } = await supabase.storage.from('photos').upload(fileName, file);
     
-    if (error) alert("Ошибка загрузки. Проверьте RLS политики!");
+    if (error) alert("Ошибка загрузки. Проверь RLS в Storage!");
     else loadGallery();
 };
 
@@ -100,17 +98,11 @@ async function loadGallery() {
 window.deletePhoto = async (name, event) => {
     event.stopPropagation();
     if (!confirm("Удалить?")) return;
-
-    // Удаляем файл из хранилища
-    const { error: storageError } = await supabase.storage.from('photos').remove([name]);
-    // Удаляем метаданные из базы
+    await supabase.storage.from('photos').remove([name]);
     await supabase.from('photo_metadata').delete().eq('filename', name);
-
-    if (storageError) alert("Ошибка удаления. Проверьте RLS политики в Storage!");
-    else loadGallery();
+    loadGallery();
 };
 
-// --- Просмотр и взаимодействие ---
 window.openFullScreen = async (index) => {
     currentIndex = index;
     const photo = currentPhotos[index];
@@ -136,10 +128,9 @@ window.likeCurrentPhoto = async () => {
 };
 
 window.addComment = async () => {
-    if (!currentUser) return;
     const input = document.getElementById('commentInput');
     const text = input.value.trim();
-    if (!text) return;
+    if (!text || !currentUser) return;
 
     const photo = currentPhotos[currentIndex];
     const { data } = await supabase.from('photo_metadata').select('*').eq('filename', photo.name).maybeSingle();

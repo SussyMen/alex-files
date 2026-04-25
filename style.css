@@ -23,9 +23,8 @@ header {
 .nav-icons { display: flex; gap: 15px; align-items: center; }
 
 .icon-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
-.user-avatar { width: 30px; height: 30px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.user-avatar { width: 30px; height: 30px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
 
-/* Галерея */
 .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px 0; }
 .photo-card { aspect-ratio: 1/1; position: relative; background: #1a1a1a; }
 .photo-card img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
@@ -35,27 +34,31 @@ header {
     border: none; color: white; border-radius: 50%; width: 25px; height: 25px; cursor: pointer;
 }
 
-/* Авторизация */
 .modal-auth {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center;
 }
-.auth-content { background: var(--bg); padding: 30px; border-radius: 12px; width: 300px; text-align: center; }
-.auth-content input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid var(--border); border-radius: 5px; background: none; color: var(--text); box-sizing: border-box; }
-.primary-btn { width: 100%; background: var(--accent); color: white; border: none; padding: 10px; border-radius: 5px; font-weight: 600; cursor: pointer; }
-.auth-switch { color: var(--accent); font-size: 14px; cursor: pointer; margin-top: 15px; }
+.auth-content { background: var(--bg); padding: 30px; border-radius: 15px; width: 300px; text-align: center; }
+.auth-content input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 5px; background: none; color: var(--text); box-sizing: border-box; }
+.primary-btn { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 5px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+.auth-switch { color: var(--accent); font-size: 14px; cursor: pointer; margin-top: 20px; }
 
-/* Пост */
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; }
 .modal-header { height: 50px; display: flex; align-items: center; padding: 0 15px; border-bottom: 1px solid var(--border); }
 .modal-content-wrapper { flex: 1; overflow-y: auto; }
-.image-container { position: relative; background: #000; display: flex; align-items: center; }
-#fullScreenImg { width: 100%; height: auto; max-height: 70vh; object-fit: contain; }
+.image-container { position: relative; background: #000; display: flex; align-items: center; justify-content: center; min-height: 300px; }
+#fullScreenImg { width: 100%; height: auto; max-height: 75vh; object-fit: contain; }
+.nav-btn { position: absolute; background: rgba(0,0,0,0.3); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+.left { left: 10px; } .right { right: 10px; }
+
 .interaction-area { padding: 15px; }
-.actions { font-size: 24px; margin-bottom: 10px; display: flex; gap: 15px; }
-#commentsList { font-size: 14px; margin-bottom: 15px; }
+.actions { font-size: 24px; margin-bottom: 10px; }
+.like-btn { background: none; border: none; cursor: pointer; font-size: 24px; padding: 0; }
 .comment-input-area { display: flex; border-top: 1px solid var(--border); padding-top: 10px; }
 .comment-input-area input { flex: 1; border: none; background: none; color: var(--text); outline: none; }
-.comment-input-area button { background: none; border: none; color: var(--accent); font-weight: 600; }
+.comment-input-area button { background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; }
+
+.close-icon { background: none; border: none; color: var(--text); font-size: 28px; cursor: pointer; }
+.modal-title { flex: 1; text-align: center; font-weight: 600; }
 
 .hidden { display: none !important; }
