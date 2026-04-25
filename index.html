@@ -1,29 +1,70 @@
-<div id="fullScreenModal" class="modal hidden">
-    <div class="modal-header">
-        <button class="icon-btn" onclick="window.closeFullScreen()">✕</button>
-        <span style="flex:1; text-align:center; font-weight:600;">Публикация</span>
-    </div>
-    
-    <div class="modal-content-wrapper">
-        <div style="position:relative;">
-            <button class="nav-btn left" onclick="window.prevPhoto()">‹</button>
-            <img id="fullScreenImg" src="">
-            <button class="nav-btn right" onclick="window.nextPhoto()">›</button>
-        </div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alexstagram</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
 
-        <div class="interaction-area">
-            <div class="actions">
-                <button class="like-btn" onclick="window.likeCurrentPhoto()">❤️</button>
-                <span>💬</span>
+    <header>
+        <div class="logo">Alex<span>Files</span></div>
+        <div class="admin-controls">
+            <button class="icon-btn" onclick="window.toggleAdminPanel()">⚙️</button>
+            <span id="adminStatus" class="status-badge" style="display:none;">Admin</span>
+        </div>
+    </header>
+
+    <div id="passwordPanel" class="modal-mini hidden">
+        <div class="modal-content">
+            <input type="password" id="adminPass" placeholder="Пароль">
+            <button onclick="window.checkPassword()">Войти</button>
+        </div>
+    </div>
+
+    <main>
+        <div class="upload-card">
+            <label for="imageInput" class="custom-file-upload">Добавить публикацию</label>
+            <input type="file" id="imageInput" accept="image/*" onchange="window.updateFileName()">
+            <span id="fileNameDisplay"></span>
+            <button id="uploadBtn" onclick="window.uploadPhoto()">Поделиться</button>
+        </div>
+        
+        <div class="gallery" id="gallery"></div>
+    </main>
+
+    <div id="fullScreenModal" class="modal hidden">
+        <div class="modal-header">
+            <button class="close-icon" onclick="window.closeFullScreen()">✕</button>
+            <span class="modal-title">Публикация</span>
+        </div>
+        
+        <div class="modal-content-wrapper">
+            <div class="image-container">
+                <button class="nav-btn left" onclick="window.prevPhoto()">‹</button>
+                <img id="fullScreenImg" src="">
+                <button class="nav-btn right" onclick="window.nextPhoto()">›</button>
             </div>
-            <span class="likes-count">Нравится: <span id="likeCount">0</span></span>
-            
-            <div id="commentsList"></div>
-            
-            <div class="comment-input-area">
-                <input type="text" id="commentInput" placeholder="Добавьте комментарий...">
-                <button onclick="window.addComment()">Опубликовать</button>
+
+            <div class="interaction-area">
+                <div class="actions">
+                    <button class="like-btn" onclick="window.likeCurrentPhoto()">❤️</button>
+                    <span class="comment-icon">💬</span>
+                </div>
+                <span class="likes-count">Нравится: <span id="likeCount">0</span></span>
+                
+                <div id="commentsList"></div>
+                
+                <div class="comment-input-area">
+                    <input type="text" id="commentInput" placeholder="Добавьте комментарий...">
+                    <button onclick="window.addComment()">Опубликовать</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
