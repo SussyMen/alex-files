@@ -151,14 +151,25 @@
     };
 
     window.uploadAvatar = async () => {
-        const file = document.getElementById('avatarI').files[0];
-        if(!file || !currU) return;
-        const name = `avatars/${currU.id}_${Date.now()}`;
-        await sb.storage.from('photos').upload(name, file);
-        const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
-        await sb.from('profiles').update({ avatar_url: publicUrl }).eq('id', currU.id);
-        location.reload();
-    };
+    const file = document.getElementById('avatarI').files[0];
+    if(!file || !currU) return alert("Войдите в аккаунт!");
+
+    // Папка avatars внутри бакета photos
+    const name = `avatars/${currU.id}_${Date.now()}`;
+
+    // Загрузка
+    const { error: upErr } = await sb.storage.from('photos').upload(name, file, { upsert: true });
+    if(upErr) return alert("Ошибка загрузки: " + upErr.message);
+
+    // Ссылка
+    const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
+
+    // Обновление профиля
+    const { error: dbErr } = await sb.from('profiles').update({ avatar_url: publicUrl }).eq('id', currU.id);
+    if(dbErr) return alert("Ошибка БД: " + dbErr.message);
+
+    location.reload(); // Перезагружаем, чтобы применились все изменения
+};
 
     window.doLike = async () => {
         if(!currU) return openM('authM');
