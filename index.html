@@ -23,7 +23,7 @@
         .nav-btn { background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
         .spinner { width: 24px; height: 24px; border: 3px solid rgba(128,128,128,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .del-btn { position: absolute; top: 10px; right: 10px; background: var(--danger); color: #fff; border: none; padding: 5px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; }
+        .del-btn { position: absolute; top: 10px; right: 10px; background: var(--danger); color: #fff; border: none; padding: 5px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; z-index: 10; }
     </style>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <header>
     <div class="logo" style="font-weight: 900;">Alexstagram</div>
     <div id="nav">
-        <button id="loginBtn" onclick="openM('authM')" style="background:var(--text); color:var(--bg); border:none; padding:8px 16px; border-radius:8px; font-weight:bold;">Войти</button>
+        <button id="loginBtn" onclick="openM('authM')" style="background:var(--text); color:var(--bg); border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">Войти</button>
         <div id="userMenu" style="display:none; gap:15px; align-items:center;">
             <div id="loader" class="spinner"></div>
             <button class="nav-btn" id="plusB" onclick="document.getElementById('fileI').click()">➕</button>
@@ -51,7 +51,7 @@
             <div class="comments-list" id="cL"></div>
             <div class="comm-input">
                 <input type="text" id="cI" placeholder="Напишите комментарий..." onkeydown="if(event.key==='Enter') doComm()">
-                <button onclick="doComm()" style="border:none; background:none; color:var(--accent); font-weight:bold;">Ок</button>
+                <button onclick="doComm()" style="border:none; background:none; color:var(--accent); font-weight:bold; cursor:pointer;">Ок</button>
             </div>
         </div>
     </div>
@@ -62,7 +62,7 @@
         <h2 id="aT" style="margin-top:0">Вход</h2>
         <input type="email" id="aE" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
         <input type="password" id="aP" placeholder="Пароль" style="width:100%; padding:10px; margin-bottom:10px;" onkeydown="if(event.key==='Enter') auth()">
-        <button onclick="auth()" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold;">Продолжить</button>
+        <button onclick="auth()" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Продолжить</button>
         <button onclick="toggleS()" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Сменить режим</button>
     </div>
 </div>
@@ -71,29 +71,31 @@
 <main><div class="gallery" id="grid"></div></main>
 
 <script>
-    // --- НАСТРОЙКИ ---
-    const ADMIN_EMAILS = ['ivan.amogus737@gmail.com', 'susivanov@gmail.com']; // Впиши свои email-ы
+    const ADMIN_EMAILS = ['твой@email.com', 'admin@example.com'];
     const SB_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
     const SB_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
 
-    // Используем уникальное имя для клиента
     const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
 
     let currU = null, currP = null, isS = false;
 
-    // Ждем загрузки страницы
-    document.addEventListener('DOMContentLoaded', () => {
-        initApp();
-    });
+    document.addEventListener('DOMContentLoaded', () => initApp());
 
     async function initApp() {
         const { data: { session } } = await sbClient.auth.getSession();
-        currU = session?.user;
+        updateUserUI(session?.user);
+        loadP();
+    }
+
+    function updateUserUI(user) {
+        currU = user;
         if(currU) {
             document.getElementById('loginBtn').style.display = 'none';
             document.getElementById('userMenu').style.display = 'flex';
+        } else {
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('userMenu').style.display = 'none';
         }
-        loadP();
     }
 
     window.openM = (id) => document.getElementById(id).style.display = 'flex';
@@ -103,15 +105,26 @@
     window.auth = async () => {
         const e = document.getElementById('aE').value, p = document.getElementById('aP').value;
         if(!e || !p) return;
-        const { error } = isS ? await sbClient.auth.signUp({email:e, password:p}) : await sbClient.auth.signInWithPassword({email:e, password:p});
-        if(error) alert(error.message); else location.reload();
+        const { data, error } = isS ? await sbClient.auth.signUp({email:e, password:p}) : await sbClient.auth.signInWithPassword({email:e, password:p});
+
+        if(error) {
+            console.error("Auth error:", error.message);
+            alert(error.message);
+        } else {
+            updateUserUI(data.user);
+            closeM('authM');
+            loadP(); // Перегружаем галерею, чтобы появились кнопки удаления для админа
+        }
     };
 
-    window.logout = async () => { if(confirm("Выйти?")) { await sbClient.auth.signOut(); location.reload(); } };
+    window.logout = async () => {
+        const { error } = await sbClient.auth.signOut();
+        if(!error) updateUserUI(null);
+    };
 
     async function loadP() {
         const { data, error } = await sbClient.from('posts').select('*').order('created_at', {ascending: false});
-        if(error) return;
+        if(error) { console.error("Load posts error:", error); return; }
         const grid = document.getElementById('grid');
         grid.innerHTML = "";
         data?.forEach(p => {
@@ -124,43 +137,84 @@
     window.upload = async () => {
         const file = document.getElementById('fileI').files[0];
         if(!file || !currU) return;
+
         document.getElementById('plusB').style.display = 'none';
         document.getElementById('loader').style.display = 'block';
+
         const name = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-        await sbClient.storage.from('photos').upload(name, file);
+
+        const { error: upErr } = await sbClient.storage.from('photos').upload(name, file);
+        if(upErr) {
+            console.error("Upload error:", upErr);
+            alert("Ошибка загрузки в Storage");
+            resetUploadUI();
+            return;
+        }
+
         const { data: { publicUrl } } = sbClient.storage.from('photos').getPublicUrl(name);
-        await sbClient.from('posts').insert({ image_url: publicUrl });
-        location.reload();
+        const { error: dbErr } = await sbClient.from('posts').insert({ image_url: publicUrl });
+
+        if(dbErr) {
+            console.error("DB Insert error:", dbErr);
+            alert("Ошибка сохранения в базу");
+        } else {
+            loadP(); // Обновляем сетку без перезагрузки страницы
+        }
+        resetUploadUI();
     };
 
+    function resetUploadUI() {
+        document.getElementById('plusB').style.display = 'block';
+        document.getElementById('loader').style.display = 'none';
+    }
+
     window.viewP = async (id) => {
-        const { data } = await sbClient.from('posts').select('*').eq('id', id).single();
+        const { data, error } = await sbClient.from('posts').select('*').eq('id', id).single();
+        if(error) return;
         currP = data;
-        document.getElementById('fImg').src = data.image_url;
-        document.getElementById('lC').innerText = data.likes.length;
-        document.getElementById('lH').innerText = data.likes.includes(currU?.id) ? "❤️" : "🤍";
-        document.getElementById('cL').innerHTML = data.comments.map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('');
+        renderPostData();
         openM('viewM');
     };
+
+    function renderPostData() {
+        document.getElementById('fImg').src = currP.image_url;
+        document.getElementById('lC').innerText = currP.likes.length;
+        document.getElementById('lH').innerText = currP.likes.includes(currU?.id) ? "❤️" : "🤍";
+        document.getElementById('cL').innerHTML = currP.comments.map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('');
+    }
 
     window.doLike = async () => {
         if(!currU) return alert("Войдите!");
         let l = currP.likes.includes(currU.id) ? currP.likes.filter(i => i!==currU.id) : [...currP.likes, currU.id];
-        await sbClient.from('posts').update({ likes: l }).eq('id', currP.id);
-        viewP(currP.id);
+
+        const { data, error } = await sbClient.from('posts').update({ likes: l }).eq('id', currP.id).select().single();
+        if(!error) {
+            currP = data; // Обновляем локальные данные поста
+            renderPostData(); // Перерисовываем только окно просмотра
+        }
     };
 
     window.doComm = async () => {
         const t = document.getElementById('cI').value;
         if(!t || !currU) return;
         const nc = [...currP.comments, { user: currU.email.split('@')[0], text: t }];
-        await sbClient.from('posts').update({ comments: nc }).eq('id', currP.id);
-        document.getElementById('cI').value = "";
-        viewP(currP.id);
+
+        const { data, error } = await sbClient.from('posts').update({ comments: nc }).eq('id', currP.id).select().single();
+        if(!error) {
+            currP = data;
+            document.getElementById('cI').value = "";
+            renderPostData();
+        }
     };
 
     window.delP = async (id) => {
-        if(confirm("Удалить?")) { await sbClient.from('posts').delete().eq('id', id); loadP(); closeM('viewM'); }
+        if(confirm("Удалить?")) {
+            const { error } = await sbClient.from('posts').delete().eq('id', id);
+            if(!error) {
+                loadP();
+                closeM('viewM');
+            }
+        }
     };
 </script>
 </body>
