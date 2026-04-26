@@ -2,17 +2,16 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alexstagram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alexstagram | Project</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* БЕЛО-ТЕМНЫЙ ФОРМАТ */
         :root {
             --bg: #ffffff;
             --text: #000000;
             --border: #dbdbdb;
-            --secondary: #8e8e8e;
             --accent: #0095f6;
+            --danger: #ed4956;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -24,127 +23,184 @@
         }
 
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+
         header {
             height: 60px; display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; border-bottom: 1px solid var(--border); background: var(--bg);
-            position: sticky; top: 0; z-index: 1000;
+            padding: 0 20px; border-bottom: 1px solid var(--border);
+            background: var(--bg); position: sticky; top: 0; z-index: 1000;
         }
 
-        .btn-auth { background: var(--text); color: var(--bg); border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .logo { font-size: 22px; font-weight: bold; cursor: default; }
+        .btn-main { background: var(--text); color: var(--bg); border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; max-width: 935px; margin: 0 auto; }
-        .photo-card { aspect-ratio: 1/1; background: var(--border); overflow: hidden; }
-        .photo-card img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+            max-width: 935px; margin: 0 auto;
+        }
 
-        /* МОДАЛЬНОЕ ОКНО */
-        .modal-overlay {
+        .photo-card { position: relative; aspect-ratio: 1/1; background: var(--border); overflow: hidden; }
+        .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .del-btn {
+            position: absolute; top: 5px; right: 5px; background: var(--danger);
+            color: white; border: none; border-radius: 4px; padding: 5px 8px;
+            font-size: 12px; cursor: pointer; font-weight: bold; z-index: 10;
+        }
+
+        /* Modal */
+        #authModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 9999; display: none; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.85); z-index: 2000;
+            display: none; align-items: center; justify-content: center;
         }
-
-        .auth-card { background: var(--bg); padding: 30px; border-radius: 15px; width: 280px; text-align: center; }
-        .auth-card input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); box-sizing: border-box; }
-
-        .btn-main { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-        .switch-link { color: var(--accent); cursor: pointer; display: block; margin-top: 15px; font-size: 14px; }
+        .auth-card {
+            background: var(--bg); padding: 30px; border-radius: 15px;
+            width: 85%; max-width: 320px; text-align: center;
+        }
+        .auth-card input {
+            width: 100%; padding: 12px; margin: 8px 0;
+            border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg); color: var(--text); box-sizing: border-box;
+        }
+        .btn-blue { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-link { background: none; border: none; color: var(--accent); margin-top: 15px; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <header>
-        <div style="font-size: 20px; font-weight: bold;">Alexstagram</div>
-        <div id="nav-btns">
-            <button class="btn-auth" id="loginBtn" onclick="toggleAuth()">Войти</button>
-            <div id="userTools" style="display:none; gap: 15px; align-items:center;">
+        <div class="logo">Alexstagram</div>
+        <div id="nav">
+            <button class="btn-main" id="loginBtn" onclick="openAuth()">Войти</button>
+            <div id="userMenu" style="display:none; gap:15px; align-items:center;">
                 <button onclick="triggerFile()" style="background:none; border:none; font-size:24px; color:var(--text); cursor:pointer;">➕</button>
-                <span onclick="logout()" style="cursor:pointer; font-size:20px;">👤</span>
+                <div onclick="logout()" style="cursor:pointer; font-size:22px;">👤</div>
             </div>
         </div>
     </header>
 
-    <div id="authModal" class="modal-overlay">
+    <div id="authModal">
         <div class="auth-card">
-            <h2 id="modalTitle">Вход</h2>
+            <h2 id="authTitle">Вход</h2>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="pass" placeholder="Пароль">
-            <button class="btn-main" onclick="processAuth()">Продолжить</button>
-            <span class="switch-link" id="switchBtn" onclick="toggleMode()">Нет аккаунта? Регистрация</span>
-            <button onclick="toggleAuth()" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Закрыть</button>
+            <button class="btn-blue" id="submitBtn" onclick="handleAuth()">Продолжить</button>
+            <button class="btn-link" id="switchBtn" onclick="toggleMode()">Нет аккаунта? Регистрация</button>
+            <br>
+            <button onclick="closeAuth()" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Отмена</button>
         </div>
     </div>
 
     <input type="file" id="fileInp" style="display:none" onchange="upload()">
 
-    <main><div class="gallery" id="grid"></div></main>
+    <main>
+        <div class="gallery" id="grid"></div>
+    </main>
 
     <script>
-        // Инициализация Supabase
-        const SUPABASE_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // ВПИШИ СВОЙ EMAIL ТУТ ДЛЯ ФУНКЦИЙ АДМИНА
+        const ADMIN_EMAIL = 'ivan.amogus737@gmail.com';
 
-        let isRegistration = false;
+        const SB_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
+        const SB_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
+        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        // Открытие/закрытие окна
-        function toggleAuth() {
-            const m = document.getElementById('authModal');
-            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-        }
+        let isSignUp = false;
 
-        // ПЕРЕКЛЮЧЕНИЕ РЕГИСТРАЦИИ (Проверь это!)
+        function openAuth() { document.getElementById('authModal').style.display = 'flex'; }
+        function closeAuth() { document.getElementById('authModal').style.display = 'none'; }
+
         function toggleMode() {
-            isRegistration = !isRegistration;
-            document.getElementById('modalTitle').innerText = isRegistration ? "Регистрация" : "Вход";
-            document.getElementById('switchBtn').innerText = isRegistration ? "Есть аккаунт? Войти" : "Нет аккаунта? Регистрация";
+            isSignUp = !isSignUp;
+            document.getElementById('authTitle').innerText = isSignUp ? "Регистрация" : "Вход";
+            document.getElementById('switchBtn').innerText = isSignUp ? "Есть аккаунт? Войти" : "Нет аккаунта? Регистрация";
         }
 
-        async function processAuth() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            if (!e || !p) return alert("Заполни поля!");
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            if(!email || !pass) return alert("Заполни поля");
 
-            if (isRegistration) {
-                const { error } = await sb.auth.signUp({ email: e, password: p });
-                if (error) alert("Ошибка: " + error.message);
-                else alert("Регистрация успешна! Теперь попробуй войти.");
-            } else {
-                const { error } = await sb.auth.signInWithPassword({ email: e, password: p });
-                if (error) alert("Ошибка: " + error.message);
-                else location.reload();
+            const { data, error } = isSignUp
+                ? await supabase.auth.signUp({ email, password: pass })
+                : await supabase.auth.signInWithPassword({ email, password: pass });
+
+            if(error) alert(error.message);
+            else {
+                alert(isSignUp ? "Регистрация прошла! Теперь войдите." : "Успешный вход!");
+                if(!isSignUp) location.reload();
+                else toggleMode();
             }
         }
 
-        async function logout() { if(confirm("Выйти?")) { await sb.auth.signOut(); location.reload(); } }
+        async function logout() {
+            if(confirm("Выйти?")) { await supabase.auth.signOut(); location.reload(); }
+        }
 
         async function loadPhotos() {
-            const { data, error } = await sb.storage.from('photos').list();
-            if (error) return;
-            const g = document.getElementById('grid');
-            g.innerHTML = "";
-            data.forEach(f => {
-                const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(f.name);
-                g.innerHTML += `<div class="photo-card"><img src="${publicUrl}"></div>`;
+            const { data: sessionData } = await supabase.auth.getSession();
+            const currentUser = sessionData?.session?.user;
+
+            const { data, error } = await supabase.storage.from('photos').list('', {
+                sortBy: { column: 'name', order: 'desc' }
+            });
+            if(error) return;
+
+            const grid = document.getElementById('grid');
+            grid.innerHTML = "";
+
+            data.forEach(file => {
+                const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(file.name);
+
+                // Проверка на админа для кнопки удаления
+                const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+                const delBtn = isAdmin ? `<button class="del-btn" onclick="deletePhoto('${file.name}')">Удалить</button>` : "";
+
+                grid.innerHTML += `
+                    <div class="photo-card">
+                        ${delBtn}
+                        <img src="${publicUrl}" onerror="this.parentElement.style.display='none'">
+                    </div>`;
             });
         }
 
         function triggerFile() { document.getElementById('fileInp').click(); }
+
         async function upload() {
             const file = document.getElementById('fileInp').files[0];
-            if (!file) return;
-            await sb.storage.from('photos').upload(Date.now() + "_" + file.name, file);
-            loadPhotos();
+            if(!file) return;
+
+            // Исправление ошибки 400: чистим имя файла
+            const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+            const fileName = `${Date.now()}_${cleanName}`;
+
+            const { error } = await supabase.storage.from('photos').upload(fileName, file);
+
+            if(error) {
+                alert("Ошибка: " + error.message);
+            } else {
+                loadPhotos();
+            }
         }
 
-        async function checkUser() {
-            const { data: { session } } = await sb.auth.getSession();
-            if (session) {
+        async function deletePhoto(name) {
+            if(confirm("Удалить это фото навсегда?")) {
+                const { error } = await supabase.storage.from('photos').remove([name]);
+                if(error) alert(error.message);
+                else loadPhotos();
+            }
+        }
+
+        async function init() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if(session) {
                 document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('userTools').style.display = 'flex';
+                document.getElementById('userMenu').style.display = 'flex';
             }
             loadPhotos();
         }
 
-        checkUser();
+        init();
     </script>
 </body>
 </html>
