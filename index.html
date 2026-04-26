@@ -6,20 +6,71 @@
     <title>Alexstagram</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #fff; --text: #000; --border: #dbdbdb; --accent: #0095f6; }
-        @media (prefers-color-scheme: dark) { :root { --bg: #000; --text: #fff; --border: #262626; } }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 1000; }
-        .logo { font-size: 22px; font-weight: bold; }
-        .btn-main { background: var(--text); color: var(--bg); border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; max-width: 935px; margin: 0 auto; }
-        .photo-card { position: relative; aspect-ratio: 1/1; background: var(--border); }
-        .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .del-btn { position: absolute; top: 5px; right: 5px; background: #ed4956; color: white; border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; cursor: pointer; z-index: 10; }
-        #authModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; }
-        .auth-card { background: var(--bg); padding: 30px; border-radius: 15px; width: 85%; max-width: 320px; text-align: center; }
-        .auth-card input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); box-sizing: border-box; }
-        .btn-blue { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        :root {
+            --bg: #ffffff;
+            --text: #000000;
+            --border: #efefef;
+            --accent: #0095f6;
+            --danger: #ed4956;
+            --overlay: rgba(0,0,0,0.9);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000;
+                --text: #ffffff;
+                --border: #262626;
+            }
+        }
+
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+
+        /* HEADER */
+        header {
+            height: 60px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; border-bottom: 1px solid var(--border);
+            background: var(--bg); position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { font-size: 24px; font-family: 'Arial Black', sans-serif; letter-spacing: -1px; }
+
+        /* ICONS */
+        .nav-btn { background: none; border: none; color: var(--text); cursor: pointer; padding: 8px; transition: opacity 0.2s; }
+        .nav-btn:active { opacity: 0.5; }
+        .icon-svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* GALLERY */
+        .gallery {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
+            max-width: 935px; margin: 0 auto; padding: 3px;
+        }
+        .photo-card { position: relative; aspect-ratio: 1/1; background: var(--border); overflow: hidden; cursor: pointer; }
+        .photo-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .photo-card:hover img { transform: scale(1.05); }
+
+        /* MODALS (Common) */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--overlay); z-index: 2000; display: none; align-items: center; justify-content: center; }
+
+        /* FULLSCREEN VIEW */
+        #viewModal img { max-width: 95%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+
+        /* AUTH CARD */
+        .auth-card { background: var(--bg); padding: 32px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; }
+        .auth-card input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
+        .btn-blue { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; }
+
+        /* SPINNER */
+        .spinner {
+            width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff; border-radius: 50%;
+            animation: spin 0.8s linear infinite; display: none; margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .del-btn {
+            position: absolute; top: 8px; right: 8px; background: var(--danger);
+            color: white; border: none; border-radius: 6px; padding: 6px 10px;
+            font-size: 11px; cursor: pointer; font-weight: bold; z-index: 10;
+        }
     </style>
 </head>
 <body>
@@ -27,42 +78,56 @@
 <header>
     <div class="logo">Alexstagram</div>
     <div id="nav">
-        <button class="btn-main" id="loginBtn" onclick="openAuth()">Войти</button>
-        <div id="userMenu" style="display:none; gap:15px; align-items:center;">
-            <button onclick="triggerFile()" style="background:none; border:none; font-size:24px; color:var(--text); cursor:pointer;">➕</button>
-            <div onclick="logout()" style="cursor:pointer; font-size:22px;">👤</div>
+        <button class="btn-main" id="loginBtn" onclick="openModal('authModal')" style="background:var(--text); color:var(--bg); border:none; padding:8px 16px; border-radius:8px; font-weight:bold;">Войти</button>
+        <div id="userMenu" style="display:none; gap:12px; align-items:center;">
+            <button class="nav-btn" onclick="triggerFile()" id="uploadBtn">
+                <div class="spinner" id="btnSpinner"></div>
+                <svg class="icon-svg" id="plusIcon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            </button>
+            <button class="nav-btn" onclick="logout()">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
         </div>
     </div>
 </header>
 
-<div id="authModal">
+<div class="modal" id="authModal" onclick="if(event.target==this) closeModal('authModal')">
     <div class="auth-card">
-        <h2 id="authTitle">Вход</h2>
+        <h2 id="authTitle" style="margin-top:0">Вход</h2>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Пароль">
         <button class="btn-blue" onclick="handleAuth()">Продолжить</button>
-        <button onclick="toggleMode()" id="switchBtn" style="background:none; border:none; color:var(--accent); margin-top:15px; cursor:pointer;">Нет аккаунта? Регистрация</button>
-        <br>
-        <button onclick="closeAuth()" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Отмена</button>
+        <button onclick="toggleMode()" id="switchBtn" style="background:none; border:none; color:var(--accent); margin-top:20px; cursor:pointer;">Регистрация</button>
     </div>
 </div>
 
+<div class="modal" id="viewModal" onclick="closeModal('viewModal')">
+    <img id="fullImg" src="">
+</div>
+
 <input type="file" id="fileInp" style="display:none" onchange="upload()">
-<main><div class="gallery" id="grid"></div></main>
+
+<main>
+    <div class="gallery" id="grid"></div>
+</main>
 
 <script>
-    // --- НАСТРОЙКИ ---
-    const ADMIN_EMAIL = 'ivan.amogus737@gmail.com'; // Впиши свою почту здесь!
+    const ADMIN_EMAIL = 'ivan.amogus737@gmail.com'; // Впиши свою почту!
     const SB_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
     const SB_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
-
-    // Создаем клиента под коротким именем sb во избежание конфликтов
     const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
     let isSignUp = false;
 
-    // --- ФУНКЦИИ ---
-    window.openAuth = () => document.getElementById('authModal').style.display = 'flex';
-    window.closeAuth = () => document.getElementById('authModal').style.display = 'none';
+    // ОТКРЫТИЕ/ЗАКРЫТИЕ МОДАЛОК
+    window.openModal = (id) => document.getElementById(id).style.display = 'flex';
+    window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
+    // ПРОСМОТР НА ВЕСЬ ЭКРАН
+    window.viewFull = (url) => {
+        document.getElementById('fullImg').src = url;
+        openModal('viewModal');
+    };
 
     window.toggleMode = () => {
         isSignUp = !isSignUp;
@@ -75,14 +140,14 @@
         const pass = document.getElementById('pass').value;
         if(!email || !pass) return alert("Заполни поля");
 
-        const { data, error } = isSignUp
+        const { error } = isSignUp
             ? await sb.auth.signUp({ email, password: pass })
             : await sb.auth.signInWithPassword({ email, password: pass });
 
         if(error) alert(error.message);
         else {
-            alert(isSignUp ? "Регистрация ок! Можно входить." : "Вход выполнен!");
-            if(!isSignUp) location.reload(); else toggleMode();
+            if(isSignUp) alert("Подтвердите почту (если включено) или просто войдите.");
+            location.reload();
         }
     };
 
@@ -99,8 +164,14 @@
         grid.innerHTML = "";
         data.forEach(file => {
             const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(file.name);
-            const delBtn = (user && user.email === ADMIN_EMAIL) ? `<button class="del-btn" onclick="deletePhoto('${file.name}')">Удалить</button>` : "";
-            grid.innerHTML += `<div class="photo-card">${delBtn}<img src="${publicUrl}"></div>`;
+            const isAdmin = user && user.email === ADMIN_EMAIL;
+            const delBtn = isAdmin ? `<button class="del-btn" onclick="event.stopPropagation(); deletePhoto('${file.name}')">Удалить</button>` : "";
+
+            grid.innerHTML += `
+                <div class="photo-card" onclick="viewFull('${publicUrl}')">
+                    ${delBtn}
+                    <img src="${publicUrl}" loading="lazy">
+                </div>`;
         });
     }
 
@@ -109,8 +180,20 @@
     window.upload = async () => {
         const file = document.getElementById('fileInp').files[0];
         if(!file) return;
+
+        // Показываем спиннер
+        const icon = document.getElementById('plusIcon');
+        const spinner = document.getElementById('btnSpinner');
+        icon.style.display = 'none';
+        spinner.style.display = 'block';
+
         const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
         const { error } = await sb.storage.from('photos').upload(cleanName, file);
+
+        // Возвращаем иконку
+        icon.style.display = 'block';
+        spinner.style.display = 'none';
+
         if(error) alert(error.message); else loadPhotos();
     };
 
