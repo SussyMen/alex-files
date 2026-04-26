@@ -126,13 +126,25 @@
 
     window.upload = async () => {
         const file = document.getElementById('fileI').files[0];
-        if(!file || !currU) return;
-        const name = `${Date.now()}_${file.name}`;
-        const { error: upErr } = await sb.storage.from('photos').upload(name, file);
-        if(upErr) return alert(upErr.message);
+        if(!file || !currU) return alert("Войдите в аккаунт!");
 
+        const name = `${Date.now()}_${file.name}`;
+
+    // 1. Загрузка в Storage
+        const { error: upErr } = await sb.storage.from('photos').upload(name, file);
+        if(upErr) return alert("Ошибка хранилища: " + upErr.message);
+
+    // 2. Получение ссылки
         const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
-        await sb.from('posts').insert({ image_url: publicUrl, author_id: currU.id });
+
+    // 3. Запись в базу
+        const { error: dbErr } = await sb.from('posts').insert({
+        image_url: publicUrl,
+        author_id: currU.id
+    });
+
+        if(dbErr) return alert("Ошибка базы: " + dbErr.message);
+
         location.reload();
     };
 
