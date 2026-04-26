@@ -15,11 +15,7 @@
         .photo-card img { width: 100%; height: 100%; object-fit: cover; }
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; }
         .modal-content { background: var(--bg); width: 95%; max-width: 900px; display: flex; height: 80vh; border-radius: 8px; overflow: hidden; border: 1px solid var(--gray); }
-        .modal-photo-side { flex: 1.5; background: #000; display: flex; align-items: center; justify-content: center; }
-        .modal-photo-side img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .modal-info-side { flex: 1; display: flex; flex-direction: column; border-left: 1px solid var(--gray); padding: 15px; }
-        .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gray); }
-        .profile-btn { display: flex; align-items: center; gap: 8px; background: none; border: none; color: #fff; cursor: pointer; font-weight: 600; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -29,11 +25,8 @@
     <div id="nav-actions">
         <button id="loginBtn" class="btn" onclick="openM('authM')">Войти</button>
         <div id="userMenu" style="display:none; gap:15px; align-items:center;">
-            <button class="btn" style="background:#262626" onclick="document.getElementById('fileI').click()">Публикация</button>
-            <button class="profile-btn" onclick="openM('profileM')">
-                <img id="navAvatar" src="" class="avatar">
-                <span id="navName">Профиль</span>
-            </button>
+            <button class="btn" onclick="document.getElementById('fileI').click()">Публикация</button>
+            <img id="navAvatar" onclick="openM('profileM')" src="" class="avatar" style="cursor:pointer;">
         </div>
     </div>
 </header>
@@ -41,33 +34,19 @@
 <main id="main-grid" class="gallery"></main>
 
 <div class="modal" id="profileM" onclick="if(event.target==this) closeM('profileM')">
-    <div style="background:var(--card); padding:30px; border-radius:15px; width:300px; text-align:center;">
-        <div style="position:relative; width:100px; height:100px; margin: 0 auto 15px;">
-            <img id="editAvImg" src="" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--gray);">
-            <div onclick="document.getElementById('avatarI').click()" style="position:absolute; bottom:0; right:0; background:var(--accent); border-radius:50%; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center;">📷</div>
-        </div>
-        <h3 id="editName">User</h3>
-        <button class="btn" style="background:var(--danger); width:100%; margin-top:20px;" onclick="sb.auth.signOut().then(()=>location.reload())">Выйти из аккаунта</button>
+    <div style="background:var(--card); padding:30px; border-radius:15px; text-align:center;">
+        <img id="pEditAv" src="" style="width:100px; height:100px; border-radius:50%; margin-bottom:10px;">
+        <h3 id="pEditName">User</h3>
+        <button class="btn" style="background:var(--danger)" onclick="sb.auth.signOut().then(()=>location.reload())">Выйти</button>
     </div>
 </div>
 
 <div class="modal" id="viewM" onclick="if(event.target==this) closeM('viewM')">
     <div class="modal-content">
-        <div class="modal-photo-side"><img id="fImg"></div>
-        <div class="modal-info-side">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                <img id="pAuthorAv" class="avatar">
-                <span id="pAuthorName" style="font-weight:bold;">User</span>
-            </div>
-            <div id="cL" style="flex:1; overflow-y:auto; font-size:14px; border-top:1px solid var(--gray); padding-top:10px;"></div>
-            <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
-                <span id="lH" onclick="doLike()" style="font-size:24px; cursor:pointer;">🤍</span>
-                <span id="lC" style="font-weight:bold">0</span>
-            </div>
-            <div style="display:flex; gap:5px; margin-top:10px;">
-                <input type="text" id="cI" placeholder="Коммент..." style="flex:1; background:#000; border:1px solid var(--gray); color:#fff; padding:8px; border-radius:5px;">
-                <button class="btn" onclick="doComm()">Ок</button>
-            </div>
+        <div style="flex:1.5; background:#000; display:flex; align-items:center; justify-content:center;"><img id="fImg" style="max-width:100%; max-height:100%;"></div>
+        <div style="flex:1; padding:15px; display:flex; flex-direction:column; border-left:1px solid var(--gray);">
+            <div id="cL" style="flex:1; overflow-y:auto;"></div>
+            <button class="btn" onclick="doLike()" id="lH">🤍 Лайк</button>
         </div>
     </div>
 </div>
@@ -75,15 +54,14 @@
 <div class="modal" id="authM" onclick="if(event.target==this) closeM('authM')">
     <div style="background:var(--card); padding:30px; border-radius:15px; width:280px; text-align:center;">
         <h2 id="aT">Вход</h2>
-        <input type="email" id="aE" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid var(--gray); background:#000; color:#fff;">
-        <input type="password" id="aP" placeholder="Пароль" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid var(--gray); background:#000; color:#fff;">
-        <button class="btn" style="width:100%" onclick="auth()">Продолжить</button>
-        <p onclick="isS=!isS; document.getElementById('aT').innerText=isS?'Регистрация':'Вход'" style="color:var(--accent); cursor:pointer; font-size:12px; margin-top:15px;">Сменить режим</p>
+        <input type="email" id="aE" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px; background:#000; color:#fff; border:1px solid var(--gray);">
+        <input type="password" id="aP" placeholder="Пароль" style="width:100%; padding:10px; margin-bottom:15px; background:#000; color:#fff; border:1px solid var(--gray);">
+        <button class="btn" style="width:100%" onclick="auth()">Ок</button>
+        <p onclick="isS=!isS; document.getElementById('aT').innerText=isS?'Регистрация':'Вход'" style="cursor:pointer; color:var(--accent); font-size:12px; margin-top:10px;">Сменить режим</p>
     </div>
 </div>
 
 <input type="file" id="fileI" style="display:none" onchange="upload()">
-<input type="file" id="avatarI" style="display:none" onchange="uploadAvatar()">
 
 <script>
     const SB_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
@@ -104,9 +82,8 @@
             const { data: p } = await sb.from('profiles').select('*').eq('id', currU.id).single();
             if(p) {
                 document.getElementById('navAvatar').src = p.avatar_url;
-                document.getElementById('editAvImg').src = p.avatar_url;
-                document.getElementById('navName').innerText = p.username;
-                document.getElementById('editName').innerText = p.username;
+                document.getElementById('pEditAv').src = p.avatar_url;
+                document.getElementById('pEditName').innerText = p.username;
             }
         }
         loadPosts();
@@ -119,7 +96,7 @@
     };
 
     async function loadPosts() {
-        const { data } = await sb.from('posts').select('*, profiles(username, avatar_url)').order('created_at', {ascending: false});
+        const { data, error } = await sb.from('posts').select('*, profiles(username, avatar_url)').order('created_at', {ascending: false});
         if (data) {
             document.getElementById('main-grid').innerHTML = data.map(p =>
                 `<div class="photo-card" onclick="viewP('${p.id}')"><img src="${p.image_url}"></div>`
@@ -132,61 +109,17 @@
         if(!data) return;
         currP = data;
         document.getElementById('fImg').src = data.image_url;
-        document.getElementById('lC').innerText = data.likes?.length || 0;
-        document.getElementById('lH').innerText = data.likes?.includes(currU?.id) ? "❤️" : "🤍";
-        document.getElementById('pAuthorName').innerText = data.profiles?.username || 'User';
-        document.getElementById('pAuthorAv').src = data.profiles?.avatar_url || 'https://via.placeholder.com/150';
-        document.getElementById('cL').innerHTML = (data.comments || []).map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('');
         openM('viewM');
     };
 
     window.upload = async () => {
         const file = document.getElementById('fileI').files[0];
         if(!file || !currU) return;
-        const name = `posts/${Date.now()}_${file.name}`;
+        const name = `${Date.now()}_${file.name}`;
         await sb.storage.from('photos').upload(name, file);
         const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
         await sb.from('posts').insert({ image_url: publicUrl, author_id: currU.id });
         location.reload();
-    };
-
-    window.uploadAvatar = async () => {
-    const file = document.getElementById('avatarI').files[0];
-    if(!file || !currU) return alert("Войдите в аккаунт!");
-
-    // Папка avatars внутри бакета photos
-    const name = `avatars/${currU.id}_${Date.now()}`;
-
-    // Загрузка
-    const { error: upErr } = await sb.storage.from('photos').upload(name, file, { upsert: true });
-    if(upErr) return alert("Ошибка загрузки: " + upErr.message);
-
-    // Ссылка
-    const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
-
-    // Обновление профиля
-    const { error: dbErr } = await sb.from('profiles').update({ avatar_url: publicUrl }).eq('id', currU.id);
-    if(dbErr) return alert("Ошибка БД: " + dbErr.message);
-
-    location.reload(); // Перезагружаем, чтобы применились все изменения
-};
-
-    window.doLike = async () => {
-        if(!currU) return openM('authM');
-        let likes = currP.likes || [];
-        let nl = likes.includes(currU.id) ? likes.filter(i => i!==currU.id) : [...likes, currU.id];
-        await sb.from('posts').update({ likes: nl }).eq('id', currP.id);
-        viewP(currP.id);
-    };
-
-    window.doComm = async () => {
-        const t = document.getElementById('cI').value;
-        if(!t || !currU) return;
-        const { data: p } = await sb.from('profiles').select('username').eq('id', currU.id).single();
-        const nc = [...(currP.comments || []), { user: p.username, text: t }];
-        await sb.from('posts').update({ comments: nc }).eq('id', currP.id);
-        document.getElementById('cI').value = "";
-        viewP(currP.id);
     };
 
     init();
