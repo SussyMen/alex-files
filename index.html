@@ -8,14 +8,14 @@
     <style>
         :root { --bg: #000; --card: #121212; --text: #fff; --accent: #0095f6; --gray: #262626; --danger: #ed4956; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--gray); position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; }
+        header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 -20px; border-bottom: 1px solid var(--gray); position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; padding: 0 20px; }
         .btn { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-width: 935px; margin: 0 auto; }
-        .photo-card { aspect-ratio: 1/1; background: var(--gray); cursor: pointer; position: relative; overflow: hidden; }
+        .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-width: 935px; margin: 20px auto; }
+        .photo-card { aspect-ratio: 1/1; background: var(--gray); cursor: pointer; overflow: hidden; }
         .photo-card img { width: 100%; height: 100%; object-fit: cover; }
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; }
         .modal-content { background: var(--bg); width: 95%; max-width: 900px; display: flex; height: 80vh; border-radius: 8px; overflow: hidden; border: 1px solid var(--gray); }
-        .modal-photo-side { flex: 1.5; background: #050505; display: flex; align-items: center; justify-content: center; }
+        .modal-photo-side { flex: 1.5; background: #000; display: flex; align-items: center; justify-content: center; }
         .modal-photo-side img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .modal-info-side { flex: 1; display: flex; flex-direction: column; border-left: 1px solid var(--gray); padding: 15px; }
         .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
@@ -34,14 +34,13 @@
     </div>
 </header>
 
-<div id="profile-section"></div>
 <main id="main-grid" class="gallery"></main>
 
 <div class="modal" id="viewM" onclick="if(event.target==this) closeM('viewM')">
     <div class="modal-content">
         <div class="modal-photo-side"><img id="fImg"></div>
         <div class="modal-info-side">
-            <div id="pAuthorInfo" style="display:flex; align-items:center; gap:10px; margin-bottom:15px; font-weight:bold;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; font-weight:bold;">
                 <img id="pAuthorAv" class="avatar">
                 <span id="pAuthorName">User</span>
             </div>
@@ -54,7 +53,6 @@
                 <input type="text" id="cI" placeholder="Коммент..." style="flex:1; background:#000; border:1px solid var(--gray); color:#fff; padding:8px; border-radius:5px;">
                 <button class="btn" onclick="doComm()">Ок</button>
             </div>
-            <button id="delBtn" class="btn" style="background:var(--danger); margin-top:10px; display:none;" onclick="delPost()">Удалить</button>
         </div>
     </div>
 </div>
@@ -72,12 +70,15 @@
 <input type="file" id="fileI" style="display:none" onchange="upload()">
 
 <script>
-    const ADMINS = ["ivan.amogus737@gmail.com", "susivanov@gmail.com"];
     const SB_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
     const SB_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
     const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
     let currU = null, currP = null, isS = false;
+
+    // ГЛОБАЛЬНЫЕ ФУНКЦИИ (чтобы не было "is not defined")
+    window.openM = (id) => document.getElementById(id).style.display = 'flex';
+    window.closeM = (id) => document.getElementById(id).style.display = 'none';
 
     async function init() {
         const { data: { session } } = await sb.auth.getSession();
@@ -88,10 +89,10 @@
             const { data: p } = await sb.from('profiles').select('*').eq('id', currU.id).single();
             document.getElementById('navAvatar').src = p?.avatar_url || 'https://via.placeholder.com/150';
         }
-        loadAll();
+        loadPosts();
     }
 
-    async function auth() {
+    window.auth = async () => {
         const e = document.getElementById('aE').value, p = document.getElementById('aP').value;
         const { data, error } = isS ? await sb.auth.signUp({email:e, password:p}) : await sb.auth.signInWithPassword({email:e, password:p});
         if(error) alert(error.message);
@@ -99,56 +100,55 @@
             if(isS) await sb.from('profiles').insert({id: data.user.id, username: e.split('@')[0]});
             location.reload();
         }
-    }
+    };
 
-    async function loadAll() {
+    async function loadPosts() {
         const { data, error } = await sb.from('posts').select('*, profiles(username, avatar_url)').order('created_at', {ascending: false});
-        if (data) render(data);
+        if (data) {
+            document.getElementById('main-grid').innerHTML = data.map(p =>
+                `<div class="photo-card" onclick="viewP('${p.id}')"><img src="${p.image_url}"></div>`
+            ).join('');
+        }
     }
 
-    function render(posts) {
-        document.getElementById('main-grid').innerHTML = posts.map(p =>
-            `<div class="photo-card" onclick="viewP('${p.id}')"><img src="${p.image_url}"></div>`
-        ).join('');
-    }
-
-    async function viewP(id) {
+    window.viewP = async (id) => {
         const { data } = await sb.from('posts').select('*, profiles(*)').eq('id', id).single();
+        if(!data) return;
         currP = data;
         document.getElementById('fImg').src = data.image_url;
-        document.getElementById('lC').innerText = data.likes.length;
-        document.getElementById('lH').innerText = data.likes.includes(currU?.id) ? "❤️" : "🤍";
+        document.getElementById('lC').innerText = data.likes?.length || 0;
+        document.getElementById('lH').innerText = data.likes?.includes(currU?.id) ? "❤️" : "🤍";
         document.getElementById('pAuthorName').innerText = data.profiles?.username || 'User';
         document.getElementById('pAuthorAv').src = data.profiles?.avatar_url || 'https://via.placeholder.com/150';
         document.getElementById('cL').innerHTML = (data.comments || []).map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('');
-
-        const isAdm = currU && (ADMINS.includes(currU.email) || currU.id === data.author_id);
-        document.getElementById('delBtn').style.display = isAdm ? 'block' : 'none';
         openM('viewM');
-    }
+    };
 
-    window.upload = async function() {
+    window.upload = async () => {
         const file = document.getElementById('fileI').files[0];
         if(!file || !currU) return;
         const name = `${Date.now()}_${file.name}`;
-        await sb.storage.from('photos').upload(name, file);
+        const { error: upErr } = await sb.storage.from('photos').upload(name, file);
+        if(upErr) return alert(upErr.message);
+
         const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
         await sb.from('posts').insert({ image_url: publicUrl, author_id: currU.id });
         location.reload();
     };
 
-    async function delPost() {
-        if(confirm("Удалить?")) { await sb.from('posts').delete().eq('id', currP.id); location.reload(); }
-    }
+    window.viewMyProfile = () => {
+        alert("Профиль пользователя: " + (currU?.email || "Гость"));
+    };
 
-    async function doLike() {
+    window.doLike = async () => {
         if(!currU) return openM('authM');
-        let l = currP.likes.includes(currU.id) ? currP.likes.filter(i => i!==currU.id) : [...currP.likes, currU.id];
-        await sb.from('posts').update({ likes: l }).eq('id', currP.id);
+        let likes = currP.likes || [];
+        let newLikes = likes.includes(currU.id) ? likes.filter(i => i!==currU.id) : [...likes, currU.id];
+        await sb.from('posts').update({ likes: newLikes }).eq('id', currP.id);
         viewP(currP.id);
-    }
+    };
 
-    async function doComm() {
+    window.doComm = async () => {
         const t = document.getElementById('cI').value;
         if(!t || !currU) return;
         const { data: p } = await sb.from('profiles').select('username').eq('id', currU.id).single();
@@ -156,10 +156,8 @@
         await sb.from('posts').update({ comments: nc }).eq('id', currP.id);
         document.getElementById('cI').value = "";
         viewP(currP.id);
-    }
+    };
 
-    window.openM = (id) => document.getElementById(id).style.display = 'flex';
-    window.closeM = (id) => document.getElementById(id).style.display = 'none';
     init();
 </script>
 </body>
