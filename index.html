@@ -8,31 +8,56 @@
     <style>
         :root { --bg: #fff; --text: #000; --border: #efefef; --accent: #0095f6; --danger: #ed4956; }
         @media (prefers-color-scheme: dark) { :root { --bg: #000; --text: #fff; --border: #262626; } }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
+
+        /* Header */
         header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; }
+
+        /* Gallery */
         .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; max-width: 935px; margin: 0 auto; padding: 2px; }
         .photo-card { position: relative; aspect-ratio: 1/1; background: var(--border); cursor: pointer; overflow: hidden; }
-        .photo-card img { width: 100%; height: 100%; object-fit: cover; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .view-content { background: var(--bg); width: 95%; max-width: 450px; border-radius: 15px; overflow: hidden; }
+        .photo-card img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.2s; }
+        .photo-card:active img { opacity: 0.8; }
+
+        /* Modals */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 10px; box-sizing: border-box; }
+        .view-content { background: var(--bg); width: 100%; max-width: 450px; border-radius: 15px; overflow: hidden; position: relative; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
         .view-img { width: 100%; max-height: 60vh; object-fit: contain; background: #000; display: block; }
         .view-info { padding: 15px; }
-        .comments-list { border-top: 1px solid var(--border); padding-top: 10px; max-height: 120px; overflow-y: auto; font-size: 14px; }
-        .comm-input { display: flex; gap: 10px; margin-top: 10px; }
-        .comm-input input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
-        .nav-btn { background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
-        .spinner { width: 24px; height: 24px; border: 3px solid rgba(128,128,128,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+
+        .actions { display: flex; gap: 15px; align-items: center; margin-bottom: 12px; }
+        .like-btn { font-size: 26px; cursor: pointer; transition: transform 0.1s; }
+        .like-btn:active { transform: scale(1.2); }
+
+        .comments-list { border-top: 1px solid var(--border); padding-top: 10px; max-height: 150px; overflow-y: auto; font-size: 14px; line-height: 1.4; }
+        .comment-item { margin-bottom: 6px; }
+        .comment-item b { color: var(--accent); margin-right: 5px; }
+
+        .comm-input { display: flex; gap: 10px; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+        .comm-input input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); outline: none; }
+        .comm-input button { background: none; border: none; color: var(--accent); font-weight: bold; cursor: pointer; padding: 0 5px; }
+
+        /* UI Elements */
+        .nav-btn { background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; padding: 5px; }
+        .spinner { width: 24px; height: 24px; border: 3px solid rgba(128,128,128,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .del-btn { position: absolute; top: 10px; right: 10px; background: var(--danger); color: #fff; border: none; padding: 5px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; z-index: 10; }
+        .del-btn { position: absolute; top: 10px; right: 10px; background: var(--danger); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; z-index: 10; cursor: pointer; }
+
+        .auth-card { background: var(--bg); padding: 30px; border-radius: 20px; width: 100%; max-width: 300px; text-align: center; }
+        .auth-card input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 10px; box-sizing: border-box; background: var(--bg); color: var(--text); }
+        .btn-primary { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo" style="font-weight: 900;">Alexstagram</div>
+    <div class="logo">Alexstagram</div>
     <div id="nav">
         <button id="loginBtn" onclick="openM('authM')" style="background:var(--text); color:var(--bg); border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">Войти</button>
-        <div id="userMenu" style="display:none; gap:15px; align-items:center;">
+        <div id="userMenu" style="display:none; gap:12px; align-items:center;">
             <div id="loader" class="spinner"></div>
             <button class="nav-btn" id="plusB" onclick="document.getElementById('fileI').click()">➕</button>
             <button class="nav-btn" onclick="logout()">👤</button>
@@ -44,96 +69,85 @@
     <div class="view-content">
         <img class="view-img" id="fImg">
         <div class="view-info">
-            <div class="actions" style="margin-bottom:10px;">
-                <span style="font-size:26px; cursor:pointer;" id="lH" onclick="doLike()">🤍</span>
+            <div class="actions">
+                <span class="like-btn" id="lH" onclick="doLike()">🤍</span>
                 <span id="lC" style="font-weight:bold">0</span>
             </div>
             <div class="comments-list" id="cL"></div>
             <div class="comm-input">
-                <input type="text" id="cI" placeholder="Напишите комментарий..." onkeydown="if(event.key==='Enter') doComm()">
-                <button onclick="doComm()" style="border:none; background:none; color:var(--accent); font-weight:bold; cursor:pointer;">Ок</button>
+                <input type="text" id="cI" placeholder="Ваш комментарий..." onkeydown="if(event.key==='Enter') doComm()">
+                <button onclick="doComm()">Опубликовать</button>
             </div>
         </div>
     </div>
 </div>
 
 <div class="modal" id="authM" onclick="if(event.target==this) closeM('authM')">
-    <div style="background:var(--bg); padding:30px; border-radius:20px; width:280px; text-align:center;">
+    <div class="auth-card">
         <h2 id="aT" style="margin-top:0">Вход</h2>
-        <input type="email" id="aE" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
-        <input type="password" id="aP" placeholder="Пароль" style="width:100%; padding:10px; margin-bottom:10px;" onkeydown="if(event.key==='Enter') auth()">
-        <button onclick="auth()" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Продолжить</button>
-        <button onclick="toggleS()" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Сменить режим</button>
+        <input type="email" id="aE" placeholder="Электронная почта">
+        <input type="password" id="aP" placeholder="Пароль" onkeydown="if(event.key==='Enter') auth()">
+        <button class="btn-primary" onclick="auth()">Продолжить</button>
+        <button onclick="isS=!isS; document.getElementById('aT').innerText=isS?'Регистрация':'Вход'" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer; font-size:13px;">Сменить режим</button>
     </div>
 </div>
 
-<input type="file" id="fileI" style="display:none" onchange="upload()">
+<input type="file" id="fileI" style="display:none" onchange="upload()" accept="image/*">
 <main><div class="gallery" id="grid"></div></main>
 
 <script>
-    const ADMIN_EMAILS = ['твой@email.com', 'admin@example.com'];
+    // --- КОНФИГУРАЦИЯ ---
+    const ADMIN_EMAILS = ['ivan.amogus737@gmail.com', 'susivanov@gmail.com'];
     const SB_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
     const SB_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
 
-    const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+    const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
     let currU = null, currP = null, isS = false;
 
+    // Инициализация
     document.addEventListener('DOMContentLoaded', () => initApp());
 
     async function initApp() {
-        const { data: { session } } = await sbClient.auth.getSession();
-        updateUserUI(session?.user);
+        const { data: { session } } = await sb.auth.getSession();
+        updateUI(session?.user);
         loadP();
     }
 
-    function updateUserUI(user) {
+    function updateUI(user) {
         currU = user;
-        if(currU) {
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('userMenu').style.display = 'flex';
-        } else {
-            document.getElementById('loginBtn').style.display = 'block';
-            document.getElementById('userMenu').style.display = 'none';
-        }
+        document.getElementById('loginBtn').style.display = user ? 'none' : 'block';
+        document.getElementById('userMenu').style.display = user ? 'flex' : 'none';
     }
 
     window.openM = (id) => document.getElementById(id).style.display = 'flex';
     window.closeM = (id) => document.getElementById(id).style.display = 'none';
-    window.toggleS = () => { isS = !isS; document.getElementById('aT').innerText = isS ? 'Регистрация' : 'Вход'; };
 
     window.auth = async () => {
         const e = document.getElementById('aE').value, p = document.getElementById('aP').value;
         if(!e || !p) return;
-        const { data, error } = isS ? await sbClient.auth.signUp({email:e, password:p}) : await sbClient.auth.signInWithPassword({email:e, password:p});
-
-        if(error) {
-            console.error("Auth error:", error.message);
-            alert(error.message);
-        } else {
-            updateUserUI(data.user);
-            closeM('authM');
-            loadP(); // Перегружаем галерею, чтобы появились кнопки удаления для админа
-        }
+        const { data, error } = isS ? await sb.auth.signUp({email:e, password:p}) : await sb.auth.signInWithPassword({email:e, password:p});
+        if(error) alert(error.message);
+        else { updateUI(data.user); closeM('authM'); loadP(); }
     };
 
-    window.logout = async () => {
-        const { error } = await sbClient.auth.signOut();
-        if(!error) updateUserUI(null);
-    };
+    window.logout = async () => { if(confirm("Выйти из аккаунта?")) { await sb.auth.signOut(); updateUI(null); loadP(); } };
 
+    // Загрузка сетки постов
     async function loadP() {
-        const { data, error } = await sbClient.from('posts').select('*').order('created_at', {ascending: false});
-        if(error) { console.error("Load posts error:", error); return; }
+        const { data, error } = await sb.from('posts').select('*').order('created_at', {ascending: false});
+        if(error) return console.error(error);
+
         const grid = document.getElementById('grid');
         grid.innerHTML = "";
         data?.forEach(p => {
             const isAdmin = currU && ADMIN_EMAILS.includes(currU.email);
             const del = isAdmin ? `<button class="del-btn" onclick="event.stopPropagation(); delP('${p.id}')">Удалить</button>` : "";
-            grid.innerHTML += `<div class="photo-card" onclick="viewP('${p.id}')">${del}<img src="${p.image_url}"></div>`;
+            grid.innerHTML += `<div class="photo-card" onclick="viewP('${p.id}')">${del}<img src="${p.image_url}" loading="lazy"></div>`;
         });
     }
 
+    // Загрузка фото
     window.upload = async () => {
         const file = document.getElementById('fileI').files[0];
         if(!file || !currU) return;
@@ -142,78 +156,64 @@
         document.getElementById('loader').style.display = 'block';
 
         const name = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        const { error: upErr } = await sb.storage.from('photos').upload(name, file);
 
-        const { error: upErr } = await sbClient.storage.from('photos').upload(name, file);
-        if(upErr) {
-            console.error("Upload error:", upErr);
-            alert("Ошибка загрузки в Storage");
-            resetUploadUI();
-            return;
-        }
-
-        const { data: { publicUrl } } = sbClient.storage.from('photos').getPublicUrl(name);
-        const { error: dbErr } = await sbClient.from('posts').insert({ image_url: publicUrl });
-
-        if(dbErr) {
-            console.error("DB Insert error:", dbErr);
-            alert("Ошибка сохранения в базу");
+        if(!upErr) {
+            const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
+            await sb.from('posts').insert({ image_url: publicUrl });
+            loadP();
         } else {
-            loadP(); // Обновляем сетку без перезагрузки страницы
+            alert("Ошибка загрузки");
         }
-        resetUploadUI();
-    };
 
-    function resetUploadUI() {
         document.getElementById('plusB').style.display = 'block';
         document.getElementById('loader').style.display = 'none';
-    }
+    };
 
+    // Просмотр конкретного поста
     window.viewP = async (id) => {
-        const { data, error } = await sbClient.from('posts').select('*').eq('id', id).single();
+        const { data, error } = await sb.from('posts').select('*').eq('id', id).single();
         if(error) return;
         currP = data;
-        renderPostData();
+        renderP();
         openM('viewM');
     };
 
-    function renderPostData() {
+    function renderP() {
         document.getElementById('fImg').src = currP.image_url;
         document.getElementById('lC').innerText = currP.likes.length;
         document.getElementById('lH').innerText = currP.likes.includes(currU?.id) ? "❤️" : "🤍";
-        document.getElementById('cL').innerHTML = currP.comments.map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('');
+        document.getElementById('cL').innerHTML = currP.comments.map(c => `<div class="comment-item"><b>${c.user}:</b> ${c.text}</div>`).join('');
     }
 
+    // Лайк (без перезагрузки)
     window.doLike = async () => {
-        if(!currU) return alert("Войдите!");
+        if(!currU) return openM('authM');
         let l = currP.likes.includes(currU.id) ? currP.likes.filter(i => i!==currU.id) : [...currP.likes, currU.id];
-
-        const { data, error } = await sbClient.from('posts').update({ likes: l }).eq('id', currP.id).select().single();
-        if(!error) {
-            currP = data; // Обновляем локальные данные поста
-            renderPostData(); // Перерисовываем только окно просмотра
-        }
+        const { data, error } = await sb.from('posts').update({ likes: l }).eq('id', currP.id).select().single();
+        if(!error) { currP = data; renderP(); }
     };
 
+    // Коммент (без перезагрузки)
     window.doComm = async () => {
         const t = document.getElementById('cI').value;
-        if(!t || !currU) return;
-        const nc = [...currP.comments, { user: currU.email.split('@')[0], text: t }];
+        if(!t || !currU) return !currU ? openM('authM') : null;
 
-        const { data, error } = await sbClient.from('posts').update({ comments: nc }).eq('id', currP.id).select().single();
+        const nc = [...currP.comments, { user: currU.email.split('@')[0], text: t }];
+        const { data, error } = await sb.from('posts').update({ comments: nc }).eq('id', currP.id).select().single();
         if(!error) {
             currP = data;
             document.getElementById('cI').value = "";
-            renderPostData();
+            renderP();
         }
     };
 
+    // Удаление
     window.delP = async (id) => {
-        if(confirm("Удалить?")) {
-            const { error } = await sbClient.from('posts').delete().eq('id', id);
-            if(!error) {
-                loadP();
-                closeM('viewM');
-            }
+        if(confirm("Удалить этот пост?")) {
+            await sb.from('posts').delete().eq('id', id);
+            loadP();
+            closeM('viewM');
         }
     };
 </script>
