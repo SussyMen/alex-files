@@ -8,75 +8,53 @@
     <style>
         :root { --bg: #000; --card: #121212; --text: #fff; --accent: #0095f6; --gray: #262626; --danger: #ed4956; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-
-        /* Кнопки и Навигация */
         header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--gray); position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; }
-        .btn { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn:hover { opacity: 0.8; }
-        .btn-danger { background: var(--danger); }
-
-        /* Профиль */
-        .profile-header { max-width: 935px; margin: 30px auto; display: flex; align-items: center; gap: 40px; padding: 20px; }
-        .avatar-container { position: relative; width: 150px; height: 150px; cursor: pointer; }
-        .avatar-main { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gray); }
-        .avatar-overlay { position: absolute; bottom: 5px; right: 5px; background: var(--accent); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid #000; }
-
-        /* Галерея */
+        .btn { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-width: 935px; margin: 0 auto; }
         .photo-card { aspect-ratio: 1/1; background: var(--gray); cursor: pointer; position: relative; overflow: hidden; }
-        .photo-card img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
-        .photo-card:hover img { transform: scale(1.05); }
-
-        /* Модальное окно просмотра (Исправлено отображение) */
+        .photo-card img { width: 100%; height: 100%; object-fit: cover; }
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; }
         .modal-content { background: var(--bg); width: 95%; max-width: 900px; display: flex; height: 80vh; border-radius: 8px; overflow: hidden; border: 1px solid var(--gray); }
-
-        .modal-photo-side { flex: 1.5; background: #050505; display: flex; align-items: center; justify-content: center; padding: 10px; }
-        .modal-photo-side img { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-
-        .modal-info-side { flex: 1; display: flex; flex-direction: column; border-left: 1px solid var(--gray); padding: 15px; min-width: 300px; }
-        .user-info { display: flex; align-items: center; gap: 10px; font-weight: bold; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--gray); }
-        .mini-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-
-        .comments { flex: 1; overflow-y: auto; font-size: 14px; }
-        .input-group { display: flex; gap: 8px; margin-top: 15px; }
-        .input-group input { flex: 1; background: #000; border: 1px solid var(--gray); color: #fff; padding: 10px; border-radius: 5px; }
+        .modal-photo-side { flex: 1.5; background: #050505; display: flex; align-items: center; justify-content: center; }
+        .modal-photo-side img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .modal-info-side { flex: 1; display: flex; flex-direction: column; border-left: 1px solid var(--gray); padding: 15px; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo" onclick="location.reload()" style="cursor:pointer; font-size:22px; font-weight:900; letter-spacing:-1px;">Alexstagram</div>
+    <div onclick="location.reload()" style="cursor:pointer; font-size:22px; font-weight:900;">Alexstagram</div>
     <div id="nav-actions">
         <button id="loginBtn" class="btn" onclick="openM('authM')">Войти</button>
         <div id="userMenu" style="display:none; gap:15px; align-items:center;">
             <button style="background:none; border:none; color:#fff; font-size:26px; cursor:pointer;" onclick="document.getElementById('fileI').click()">➕</button>
-            <img id="navAvatar" onclick="viewMyProfile()" src="" class="mini-avatar" style="cursor:pointer; border:1px solid #555;">
+            <img id="navAvatar" onclick="viewMyProfile()" src="" class="avatar" style="cursor:pointer; border:1px solid #555;">
         </div>
     </div>
 </header>
 
-<div id="profile-container"></div>
+<div id="profile-section"></div>
 <main id="main-grid" class="gallery"></main>
 
 <div class="modal" id="viewM" onclick="if(event.target==this) closeM('viewM')">
     <div class="modal-content">
         <div class="modal-photo-side"><img id="fImg"></div>
         <div class="modal-info-side">
-            <div class="user-info" id="pAuthorInfo" style="cursor:pointer;">
-                <img id="pAuthorAv" class="mini-avatar">
+            <div id="pAuthorInfo" style="display:flex; align-items:center; gap:10px; margin-bottom:15px; font-weight:bold;">
+                <img id="pAuthorAv" class="avatar">
                 <span id="pAuthorName">User</span>
             </div>
-            <div class="comments" id="cL"></div>
-            <div style="padding-top:10px;">
-                <span id="lH" onclick="doLike()" style="font-size:24px; cursor:pointer; margin-right:8px;">🤍</span>
+            <div id="cL" style="flex:1; overflow-y:auto; font-size:14px; border-top:1px solid var(--gray); padding-top:10px;"></div>
+            <div style="margin-top:10px;">
+                <span id="lH" onclick="doLike()" style="font-size:24px; cursor:pointer;">🤍</span>
                 <span id="lC" style="font-weight:bold">0</span>
             </div>
-            <div class="input-group">
-                <input type="text" id="cI" placeholder="Добавьте комментарий...">
+            <div style="display:flex; gap:5px; margin-top:10px;">
+                <input type="text" id="cI" placeholder="Коммент..." style="flex:1; background:#000; border:1px solid var(--gray); color:#fff; padding:8px; border-radius:5px;">
                 <button class="btn" onclick="doComm()">Ок</button>
             </div>
-            <button id="delBtn" class="btn btn-danger" style="margin-top:10px; display:none;" onclick="delPost()">Удалить пост</button>
+            <button id="delBtn" class="btn" style="background:var(--danger); margin-top:10px; display:none;" onclick="delPost()">Удалить</button>
         </div>
     </div>
 </div>
@@ -84,15 +62,14 @@
 <div class="modal" id="authM" onclick="if(event.target==this) closeM('authM')">
     <div style="background:var(--card); padding:30px; border-radius:15px; width:280px; text-align:center;">
         <h2 id="aT">Вход</h2>
-        <input type="email" id="aE" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid var(--gray); background:#000; color:#fff;">
-        <input type="password" id="aP" placeholder="Пароль" style="width:100%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid var(--gray); background:#000; color:#fff;">
+        <input type="email" id="aE" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid var(--gray); background:#000; color:#fff;">
+        <input type="password" id="aP" placeholder="Пароль" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid var(--gray); background:#000; color:#fff;">
         <button class="btn" style="width:100%" onclick="auth()">Продолжить</button>
         <p onclick="isS=!isS; document.getElementById('aT').innerText=isS?'Регистрация':'Вход'" style="color:var(--accent); cursor:pointer; font-size:12px; margin-top:15px;">Сменить режим</p>
     </div>
 </div>
 
 <input type="file" id="fileI" style="display:none" onchange="upload()">
-<input type="file" id="avatarI" style="display:none" onchange="uploadAvatar()">
 
 <script>
     const ADMINS = ["ivan.amogus737@gmail.com", "susivanov@gmail.com"];
@@ -108,8 +85,8 @@
         if(currU) {
             document.getElementById('loginBtn').style.display = 'none';
             document.getElementById('userMenu').style.display = 'flex';
-            const { data: profile } = await sb.from('profiles').select('*').eq('id', currU.id).single();
-            document.getElementById('navAvatar').src = profile?.avatar_url || 'https://via.placeholder.com/150';
+            const { data: p } = await sb.from('profiles').select('*').eq('id', currU.id).single();
+            document.getElementById('navAvatar').src = p?.avatar_url || 'https://via.placeholder.com/150';
         }
         loadAll();
     }
@@ -125,36 +102,14 @@
     }
 
     async function loadAll() {
-        document.getElementById('profile-container').innerHTML = "";
-        const { data } = await sb.from('posts').select('*, profiles(username, avatar_url)').order('created_at', {ascending: false});
-        render(data || []);
+        const { data, error } = await sb.from('posts').select('*, profiles(username, avatar_url)').order('created_at', {ascending: false});
+        if (data) render(data);
     }
-
-    async function viewUserProfile(uid) {
-        const { data: p } = await sb.from('profiles').select('*').eq('id', uid).single();
-        const { data: posts } = await sb.from('posts').select('*').eq('author_id', uid).order('created_at', {ascending: false});
-        const isMy = currU && currU.id === uid;
-
-        document.getElementById('profile-container').innerHTML = `
-            <div class="profile-header">
-                <div class="avatar-container" onclick="${isMy ? "document.getElementById('avatarI').click()" : ""}">
-                    <img class="avatar-main" src="${p?.avatar_url || 'https://via.placeholder.com/150'}">
-                    ${isMy ? '<div class="avatar-overlay">📷</div>' : ''}
-                </div>
-                <div>
-                    <h2 style="margin:0">${p?.username || 'User'}</h2>
-                    ${isMy ? '<button class="btn" style="background:#262626; margin-top:10px;" onclick="sb.auth.signOut().then(()=>location.reload())">Выйти</button>' : ''}
-                </div>
-            </div>
-        `;
-        render(posts || []);
-    }
-
-    function viewMyProfile() { if(currU) viewUserProfile(currU.id); }
 
     function render(posts) {
-        const grid = document.getElementById('main-grid');
-        grid.innerHTML = posts.map(p => `<div class="photo-card" onclick="viewP('${p.id}')"><img src="${p.image_url}"></div>`).join('');
+        document.getElementById('main-grid').innerHTML = posts.map(p =>
+            `<div class="photo-card" onclick="viewP('${p.id}')"><img src="${p.image_url}"></div>`
+        ).join('');
     }
 
     async function viewP(id) {
@@ -165,15 +120,14 @@
         document.getElementById('lH').innerText = data.likes.includes(currU?.id) ? "❤️" : "🤍";
         document.getElementById('pAuthorName').innerText = data.profiles?.username || 'User';
         document.getElementById('pAuthorAv').src = data.profiles?.avatar_url || 'https://via.placeholder.com/150';
-        document.getElementById('pAuthorInfo').onclick = () => { closeM('viewM'); viewUserProfile(data.author_id); };
-        document.getElementById('cL').innerHTML = data.comments.map(c => `<div style="margin-bottom:5px;"><b>${c.user}:</b> ${c.text}</div>`).join('');
+        document.getElementById('cL').innerHTML = (data.comments || []).map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('');
 
         const isAdm = currU && (ADMINS.includes(currU.email) || currU.id === data.author_id);
         document.getElementById('delBtn').style.display = isAdm ? 'block' : 'none';
         openM('viewM');
     }
 
-    async function upload() {
+    window.upload = async function() {
         const file = document.getElementById('fileI').files[0];
         if(!file || !currU) return;
         const name = `${Date.now()}_${file.name}`;
@@ -181,20 +135,10 @@
         const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
         await sb.from('posts').insert({ image_url: publicUrl, author_id: currU.id });
         location.reload();
-    }
-
-    async function uploadAvatar() {
-        const file = document.getElementById('avatarI').files[0];
-        if(!file || !currU) return;
-        const name = `avatars/${currU.id}`;
-        await sb.storage.from('photos').upload(name, file, {upsert: true});
-        const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
-        await sb.from('profiles').update({ avatar_url: publicUrl }).eq('id', currU.id);
-        location.reload();
-    }
+    };
 
     async function delPost() {
-        if(confirm("Удалить пост?")) { await sb.from('posts').delete().eq('id', currP.id); location.reload(); }
+        if(confirm("Удалить?")) { await sb.from('posts').delete().eq('id', currP.id); location.reload(); }
     }
 
     async function doLike() {
@@ -208,7 +152,7 @@
         const t = document.getElementById('cI').value;
         if(!t || !currU) return;
         const { data: p } = await sb.from('profiles').select('username').eq('id', currU.id).single();
-        const nc = [...currP.comments, { user: p.username, text: t }];
+        const nc = [...(currP.comments || []), { user: p.username, text: t }];
         await sb.from('posts').update({ comments: nc }).eq('id', currP.id);
         document.getElementById('cI').value = "";
         viewP(currP.id);
