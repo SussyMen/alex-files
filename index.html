@@ -8,7 +8,7 @@
     <style>
         :root { --bg: #000; --card: #121212; --text: #fff; --accent: #0095f6; --gray: #262626; --danger: #ed4956; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 -20px; border-bottom: 1px solid var(--gray); position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; padding: 0 20px; }
+        header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--gray); position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; }
         .btn { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-width: 935px; margin: 20px auto; }
         .photo-card { aspect-ratio: 1/1; background: var(--gray); cursor: pointer; overflow: hidden; }
@@ -18,7 +18,8 @@
         .modal-photo-side { flex: 1.5; background: #000; display: flex; align-items: center; justify-content: center; }
         .modal-photo-side img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .modal-info-side { flex: 1; display: flex; flex-direction: column; border-left: 1px solid var(--gray); padding: 15px; }
-        .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gray); }
+        .profile-btn { display: flex; align-items: center; gap: 8px; background: none; border: none; color: #fff; cursor: pointer; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -28,24 +29,38 @@
     <div id="nav-actions">
         <button id="loginBtn" class="btn" onclick="openM('authM')">Войти</button>
         <div id="userMenu" style="display:none; gap:15px; align-items:center;">
-            <button style="background:none; border:none; color:#fff; font-size:26px; cursor:pointer;" onclick="document.getElementById('fileI').click()">➕</button>
-            <img id="navAvatar" onclick="viewMyProfile()" src="" class="avatar" style="cursor:pointer; border:1px solid #555;">
+            <button class="btn" style="background:#262626" onclick="document.getElementById('fileI').click()">Публикация</button>
+            <button class="profile-btn" onclick="openM('profileM')">
+                <img id="navAvatar" src="" class="avatar">
+                <span id="navName">Профиль</span>
+            </button>
         </div>
     </div>
 </header>
 
 <main id="main-grid" class="gallery"></main>
 
+<div class="modal" id="profileM" onclick="if(event.target==this) closeM('profileM')">
+    <div style="background:var(--card); padding:30px; border-radius:15px; width:300px; text-align:center;">
+        <div style="position:relative; width:100px; height:100px; margin: 0 auto 15px;">
+            <img id="editAvImg" src="" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--gray);">
+            <div onclick="document.getElementById('avatarI').click()" style="position:absolute; bottom:0; right:0; background:var(--accent); border-radius:50%; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center;">📷</div>
+        </div>
+        <h3 id="editName">User</h3>
+        <button class="btn" style="background:var(--danger); width:100%; margin-top:20px;" onclick="sb.auth.signOut().then(()=>location.reload())">Выйти из аккаунта</button>
+    </div>
+</div>
+
 <div class="modal" id="viewM" onclick="if(event.target==this) closeM('viewM')">
     <div class="modal-content">
         <div class="modal-photo-side"><img id="fImg"></div>
         <div class="modal-info-side">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; font-weight:bold;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
                 <img id="pAuthorAv" class="avatar">
-                <span id="pAuthorName">User</span>
+                <span id="pAuthorName" style="font-weight:bold;">User</span>
             </div>
             <div id="cL" style="flex:1; overflow-y:auto; font-size:14px; border-top:1px solid var(--gray); padding-top:10px;"></div>
-            <div style="margin-top:10px;">
+            <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
                 <span id="lH" onclick="doLike()" style="font-size:24px; cursor:pointer;">🤍</span>
                 <span id="lC" style="font-weight:bold">0</span>
             </div>
@@ -68,6 +83,7 @@
 </div>
 
 <input type="file" id="fileI" style="display:none" onchange="upload()">
+<input type="file" id="avatarI" style="display:none" onchange="uploadAvatar()">
 
 <script>
     const SB_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
@@ -76,7 +92,6 @@
 
     let currU = null, currP = null, isS = false;
 
-    // ГЛОБАЛЬНЫЕ ФУНКЦИИ (чтобы не было "is not defined")
     window.openM = (id) => document.getElementById(id).style.display = 'flex';
     window.closeM = (id) => document.getElementById(id).style.display = 'none';
 
@@ -87,7 +102,12 @@
             document.getElementById('loginBtn').style.display = 'none';
             document.getElementById('userMenu').style.display = 'flex';
             const { data: p } = await sb.from('profiles').select('*').eq('id', currU.id).single();
-            document.getElementById('navAvatar').src = p?.avatar_url || 'https://via.placeholder.com/150';
+            if(p) {
+                document.getElementById('navAvatar').src = p.avatar_url;
+                document.getElementById('editAvImg').src = p.avatar_url;
+                document.getElementById('navName').innerText = p.username;
+                document.getElementById('editName').innerText = p.username;
+            }
         }
         loadPosts();
     }
@@ -95,15 +115,11 @@
     window.auth = async () => {
         const e = document.getElementById('aE').value, p = document.getElementById('aP').value;
         const { data, error } = isS ? await sb.auth.signUp({email:e, password:p}) : await sb.auth.signInWithPassword({email:e, password:p});
-        if(error) alert(error.message);
-        else {
-            if(isS) await sb.from('profiles').insert({id: data.user.id, username: e.split('@')[0]});
-            location.reload();
-        }
+        if(error) alert(error.message); else location.reload();
     };
 
     async function loadPosts() {
-        const { data, error } = await sb.from('posts').select('*, profiles(username, avatar_url)').order('created_at', {ascending: false});
+        const { data } = await sb.from('posts').select('*, profiles(username, avatar_url)').order('created_at', {ascending: false});
         if (data) {
             document.getElementById('main-grid').innerHTML = data.map(p =>
                 `<div class="photo-card" onclick="viewP('${p.id}')"><img src="${p.image_url}"></div>`
@@ -126,37 +142,29 @@
 
     window.upload = async () => {
         const file = document.getElementById('fileI').files[0];
-        if(!file || !currU) return alert("Войдите в аккаунт!");
-
-        const name = `${Date.now()}_${file.name}`;
-
-    // 1. Загрузка в Storage
-        const { error: upErr } = await sb.storage.from('photos').upload(name, file);
-        if(upErr) return alert("Ошибка хранилища: " + upErr.message);
-
-    // 2. Получение ссылки
+        if(!file || !currU) return;
+        const name = `posts/${Date.now()}_${file.name}`;
+        await sb.storage.from('photos').upload(name, file);
         const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
-
-    // 3. Запись в базу
-        const { error: dbErr } = await sb.from('posts').insert({
-        image_url: publicUrl,
-        author_id: currU.id
-    });
-
-        if(dbErr) return alert("Ошибка базы: " + dbErr.message);
-
+        await sb.from('posts').insert({ image_url: publicUrl, author_id: currU.id });
         location.reload();
     };
 
-    window.viewMyProfile = () => {
-        alert("Профиль пользователя: " + (currU?.email || "Гость"));
+    window.uploadAvatar = async () => {
+        const file = document.getElementById('avatarI').files[0];
+        if(!file || !currU) return;
+        const name = `avatars/${currU.id}_${Date.now()}`;
+        await sb.storage.from('photos').upload(name, file);
+        const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
+        await sb.from('profiles').update({ avatar_url: publicUrl }).eq('id', currU.id);
+        location.reload();
     };
 
     window.doLike = async () => {
         if(!currU) return openM('authM');
         let likes = currP.likes || [];
-        let newLikes = likes.includes(currU.id) ? likes.filter(i => i!==currU.id) : [...likes, currU.id];
-        await sb.from('posts').update({ likes: newLikes }).eq('id', currP.id);
+        let nl = likes.includes(currU.id) ? likes.filter(i => i!==currU.id) : [...likes, currU.id];
+        await sb.from('posts').update({ likes: nl }).eq('id', currP.id);
         viewP(currP.id);
     };
 
