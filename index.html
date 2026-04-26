@@ -10,152 +10,167 @@
         @media (prefers-color-scheme: dark) { :root { --bg: #000; --text: #fff; --border: #262626; } }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 1000; }
-        .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; max-width: 935px; margin: 0 auto; padding: 3px; }
-        .photo-card { position: relative; aspect-ratio: 1/1; background: var(--border); cursor: pointer; }
+        .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; max-width: 935px; margin: 0 auto; padding: 2px; }
+        .photo-card { position: relative; aspect-ratio: 1/1; background: var(--border); cursor: pointer; overflow: hidden; }
         .photo-card img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* MODAL VIEW */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; flex-direction: column; align-items: center; overflow-y: auto; padding: 20px 0; }
-        .view-content { background: var(--bg); width: 95%; max-width: 500px; border-radius: 12px; overflow: hidden; }
-        .view-img { width: 100%; display: block; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .view-content { background: var(--bg); width: 95%; max-width: 450px; border-radius: 15px; overflow: hidden; }
+        .view-img { width: 100%; max-height: 60vh; object-fit: contain; background: #000; display: block; }
         .view-info { padding: 15px; }
-        .actions { display: flex; gap: 15px; margin-bottom: 10px; font-size: 24px; }
-        .comments-section { border-top: 1px solid var(--border); padding-top: 10px; max-height: 200px; overflow-y: auto; font-size: 14px; }
-        .comment-item { margin-bottom: 5px; }
-        .comment-input-area { display: flex; margin-top: 10px; gap: 5px; }
-        .comment-input-area input { flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); color: var(--text); }
+        .actions { display: flex; gap: 15px; align-items: center; margin-bottom: 10px; }
 
-        .spinner { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+        .comments-list { border-top: 1px solid var(--border); padding-top: 10px; max-height: 120px; overflow-y: auto; font-size: 14px; }
+        .comm-input { display: flex; gap: 10px; margin-top: 10px; }
+        .comm-input input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+
+        .nav-btn { background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
+        .spinner { width: 24px; height: 24px; border: 3px solid rgba(128,128,128,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .del-btn { position: absolute; top: 10px; right: 10px; background: var(--danger); color: #fff; border: none; padding: 5px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; }
+
+        .auth-card { background: var(--bg); padding: 30px; border-radius: 20px; width: 280px; text-align: center; }
+        .auth-card input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; background: var(--bg); color: var(--text); }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo">Alexstagram</div>
+    <div class="logo" style="font-weight: 900;">Alexstagram</div>
     <div id="nav">
-        <button id="loginBtn" onclick="document.getElementById('authModal').style.display='flex'" style="background:var(--text); color:var(--bg); border:none; padding:8px 16px; border-radius:8px; font-weight:bold;">Войти</button>
-        <div id="userMenu" style="display:none; gap:12px; align-items:center;">
-            <button onclick="document.getElementById('fileInp').click()" style="background:none; border:none; color:var(--text); font-size:28px; cursor:pointer;">➕</button>
-            <button onclick="logout()" style="background:none; border:none; color:var(--text); font-size:22px; cursor:pointer;">👤</button>
+        <button id="loginBtn" onclick="openM('authM')" style="background:var(--text); color:var(--bg); border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">Войти</button>
+        <div id="userMenu" style="display:none; gap:15px; align-items:center;">
+            <div id="loader" class="spinner"></div>
+            <button class="nav-btn" id="plusB" onclick="document.getElementById('fileI').click()">➕</button>
+            <button class="nav-btn" onclick="logout()">👤</button>
         </div>
     </div>
 </header>
 
-<div class="modal" id="viewModal">
+<div class="modal" id="viewM" onclick="if(event.target==this) closeM('viewM')">
     <div class="view-content">
-        <img class="view-img" id="fullImg">
+        <img class="view-img" id="fImg">
         <div class="view-info">
             <div class="actions">
-                <span id="likeBtn" onclick="handleLike()" style="cursor:pointer;">🤍</span>
-                <span id="likeCount" style="font-size:18px; font-weight:bold;">0</span>
+                <span style="font-size:26px; cursor:pointer;" id="lH" onclick="doLike()">🤍</span>
+                <span id="lC" style="font-weight:bold">0</span>
             </div>
-            <div class="comments-section" id="commentsList"></div>
-            <div class="comment-input-area">
-                <input type="text" id="commInp" placeholder="Добавить комментарий...">
-                <button onclick="addComment()" style="background:none; border:none; color:var(--accent); font-weight:bold;">Ок</button>
+            <div class="comments-list" id="cL"></div>
+            <div class="comm-input">
+                <input type="text" id="cI" placeholder="Напишите комментарий..." onkeydown="if(event.key==='Enter') doComm()">
+                <button onclick="doComm()" style="border:none; background:none; color:var(--accent); font-weight:bold; cursor:pointer;">Ок</button>
             </div>
         </div>
     </div>
-    <button onclick="closeView()" style="color:white; background:none; border:none; margin-top:20px; font-size:18px; cursor:pointer;">Закрыть</button>
 </div>
 
-<div class="modal" id="authModal" style="justify-content:center; display:none;">
-    <div style="background:var(--bg); padding:30px; border-radius:15px; width:280px; text-align:center;">
-        <input type="email" id="email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
-        <input type="password" id="pass" placeholder="Пароль" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
-        <button onclick="auth('login')" style="width:100%; padding:10px; background:var(--accent); color:white; border:none; border-radius:5px;">Войти</button>
-        <button onclick="auth('up')" style="width:100%; padding:10px; background:none; border:none; color:gray; margin-top:10px;">Регистрация</button>
+<div class="modal" id="authM" onclick="if(event.target==this) closeM('authM')">
+    <div class="auth-card">
+        <h2 id="aT" style="margin-top:0">Вход</h2>
+        <input type="email" id="aE" placeholder="Email">
+        <input type="password" id="aP" placeholder="Пароль" onkeydown="if(event.key==='Enter') auth()">
+        <button onclick="auth()" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:10px; cursor:pointer;">Продолжить</button>
+        <button onclick="isS=!isS; document.getElementById('aT').innerText=isS?'Регистрация':'Вход'" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Сменить режим</button>
     </div>
 </div>
 
-<input type="file" id="fileInp" style="display:none" onchange="upload()">
+<input type="file" id="fileI" style="display:none" onchange="upload()">
 <main><div class="gallery" id="grid"></div></main>
 
 <script>
+    // --- НАСТРОЙКИ АДМИНОВ ---
+    const ADMIN_EMAILS = [
+        'susivanov@gmail.com',
+        'ivan.amogus737@gmail.com'
+    ];
+
     const SB_URL = 'https://kjbejfgeviuddxtrejjk.supabase.co';
     const SB_KEY = 'sb_publishable_p9gBa9ptV5wgko8BwWbV_w_diNV5Jv7';
     const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
-    let currentUser = null;
-    let currentPost = null;
+    let currU = null, currP = null, isS = false;
 
-    // Инициализация
     async function init() {
         const { data: { session } } = await sb.auth.getSession();
-        currentUser = session?.user;
-        if(currentUser) {
+        currU = session?.user;
+        if(currU) {
             document.getElementById('loginBtn').style.display = 'none';
             document.getElementById('userMenu').style.display = 'flex';
         }
-        loadPosts();
+        loadP();
     }
 
-    async function auth(type) {
-        const e = document.getElementById('email').value;
-        const p = document.getElementById('pass').value;
-        const { error } = type === 'up' ? await sb.auth.signUp({email:e, password:p}) : await sb.auth.signInWithPassword({email:e, password:p});
+    window.openM = (id) => document.getElementById(id).style.display = 'flex';
+    window.closeM = (id) => document.getElementById(id).style.display = 'none';
+
+    window.auth = async () => {
+        const e = document.getElementById('aE').value, p = document.getElementById('aP').value;
+        if(!e || !p) return;
+        const { error } = isS ? await sb.auth.signUp({email:e, password:p}) : await sb.auth.signInWithPassword({email:e, password:p});
         if(error) alert(error.message); else location.reload();
-    }
+    };
 
-    async function logout() { await sb.auth.signOut(); location.reload(); }
+    window.logout = async () => { if(confirm("Выйти?")) { await sb.auth.signOut(); location.reload(); } };
 
-    async function loadPosts() {
-        const { data, error } = await sb.from('posts').select('*').order('created_at', {ascending: false});
-        if(error) return;
+    async function loadP() {
+        const { data } = await sb.from('posts').select('*').order('created_at', {ascending: false});
         const grid = document.getElementById('grid');
         grid.innerHTML = "";
-        data.forEach(post => {
-            grid.innerHTML += `<div class="photo-card" onclick="viewPost('${post.id}')"><img src="${post.image_url}"></div>`;
+        data?.forEach(p => {
+            const isAdmin = currU && ADMIN_EMAILS.includes(currU.email);
+            const del = isAdmin ? `<button class="del-btn" onclick="event.stopPropagation(); delP('${p.id}')">Удалить</button>` : "";
+            grid.innerHTML += `<div class="photo-card" onclick="viewP('${p.id}')">${del}<img src="${p.image_url}"></div>`;
         });
     }
 
-    async function upload() {
-        const file = document.getElementById('fileInp').files[0];
-        if(!file || !currentUser) return;
-        const path = `${Date.now()}_${file.name}`;
-        const { data: upData, error: upErr } = await sb.storage.from('photos').upload(path, file);
-        if(upErr) return alert(upErr.message);
+    window.upload = async () => {
+        const file = document.getElementById('fileI').files[0];
+        if(!file || !currU) return;
 
-        const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(path);
-        await sb.from('posts').insert({ image_url: publicUrl, storage_path: path });
-        loadPosts();
-    }
+        document.getElementById('plusB').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
 
-    async function viewPost(id) {
+        const name = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        await sb.storage.from('photos').upload(name, file);
+        const { data: { publicUrl } } = sb.storage.from('photos').getPublicUrl(name);
+        await sb.from('posts').insert({ image_url: publicUrl });
+
+        location.reload();
+    };
+
+    window.viewP = async (id) => {
         const { data } = await sb.from('posts').select('*').eq('id', id).single();
-        currentPost = data;
-        document.getElementById('fullImg').src = data.image_url;
-        document.getElementById('likeCount').innerText = data.likes.length;
-        document.getElementById('likeBtn').innerText = data.likes.includes(currentUser?.id) ? "❤️" : "🤍";
+        currP = data;
+        document.getElementById('fImg').src = data.image_url;
+        document.getElementById('lC').innerText = data.likes.length;
+        document.getElementById('lH').innerText = data.likes.includes(currU?.id) ? "❤️" : "🤍";
+        document.getElementById('cL').innerHTML = data.comments.map(c => `<div><b>${c.user}:</b> ${c.text}</div>`).join('');
+        openM('viewM');
+    };
 
-        const list = document.getElementById('commentsList');
-        list.innerHTML = data.comments.map(c => `<div class="comment-item"><b>${c.user}:</b> ${c.text}</div>`).join('');
+    window.doLike = async () => {
+        if(!currU) return alert("Войдите, чтобы ставить лайки");
+        let l = currP.likes.includes(currU.id) ? currP.likes.filter(i => i!==currU.id) : [...currP.likes, currU.id];
+        await sb.from('posts').update({ likes: l }).eq('id', currP.id);
+        viewP(currP.id);
+    };
 
-        document.getElementById('viewModal').style.display = 'flex';
-    }
+    window.doComm = async () => {
+        const t = document.getElementById('cI').value;
+        if(!t || !currU) return;
+        const nc = [...currP.comments, { user: currU.email.split('@')[0], text: t }];
+        await sb.from('posts').update({ comments: nc }).eq('id', currP.id);
+        document.getElementById('cI').value = "";
+        viewP(currP.id);
+    };
 
-    async function handleLike() {
-        if(!currentUser) return alert("Войдите, чтобы лайкать");
-        let newLikes = [...currentPost.likes];
-        if(newLikes.includes(currentUser.id)) newLikes = newLikes.filter(id => id !== currentUser.id);
-        else newLikes.push(currentUser.id);
-
-        await sb.from('posts').update({ likes: newLikes }).eq('id', currentPost.id);
-        viewPost(currentPost.id);
-    }
-
-    async function addComment() {
-        const text = document.getElementById('commInp').value;
-        if(!text || !currentUser) return alert("Войдите и напишите текст");
-        const newComments = [...currentPost.comments, { user: currentUser.email.split('@')[0], text }];
-
-        await sb.from('posts').update({ comments: newComments }).eq('id', currentPost.id);
-        document.getElementById('commInp').value = "";
-        viewPost(currentPost.id);
-    }
-
-    function closeView() { document.getElementById('viewModal').style.display = 'none'; }
+    window.delP = async (id) => {
+        if(confirm("Удалить этот пост навсегда?")) {
+            await sb.from('posts').delete().eq('id', id);
+            loadP();
+            closeM('viewM');
+        }
+    };
 
     init();
 </script>
